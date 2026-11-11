@@ -163,6 +163,7 @@ h3{font-size:15px;margin:0 0 8px}
     <div class="brand"><span class="dot"></span>แพลนลงคลิป</div>
     <div class="tabs" id="tabs"></div>
     <div class="who">
+      <span id="save-status" style="font-size:12px;font-weight:600"></span>
       <span id="who-email"></span>
       <span class="role-badge" id="who-role"></span>
       <button class="btn small" id="logout-btn">ออกจากระบบ</button>
@@ -277,6 +278,64 @@ h3{font-size:15px;margin:0 0 8px}
 /* ---------------- config ---------------- */
 const SUPABASE_URL = 'https://ucriaoofbfmnzxvsvsyf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable__EOnB8E1kwuSYPbj4VWa3g_4jBBDbgI';
+/* ---------- save status: tells the user whether the last change really reached the database ---------- */
+let saveStatusTimer = null;
+function setSave(state){
+  const el = document.getElementById('save-status');
+  if(!el) return;
+  clearTimeout(saveStatusTimer);
+  if(state==='saving'){ el.style.color='var(--muted)'; el.textContent='กำลังบันทึก…'; }
+  else if(state==='saved'){ el.style.color='var(--ok)'; el.textContent='บันทึกแล้ว ✓'; saveStatusTimer=setTimeout(()=>{ el.textContent=''; },2500); }
+  else if(state==='error'){ el.style.color='var(--danger)'; el.textContent='บันทึกไม่สำเร็จ — ลองใหม่อีกครั้ง'; }
+}
+// wrap writes (insert/update/upsert/delete/rpc) so every mutation reports its real outcome
+function trackWrite(builder){
+  const origThen = builder.then.bind(builder);
+  builder.then = (res, rej) => {
+    setSave('saving');
+    return origThen(r => { setSave(r && r.error ? 'error' : 'saved'); return r; },
+                    e => { setSave('error'); throw e; }).then(res, rej);
+  };
+  return builder;
+}
+function installWriteTracking(){
+  const _sbFrom = sb.from.bind(sb);
+  sb.from = (table) => {
+    const qb = _sbFrom(table);
+    ['insert','update','upsert','delete'].forEach(m=>{
+      const orig = qb[m].bind(qb);
+      qb[m] = (...args) => trackWrite(orig(...args));
+    });
+    return qb;
+  };
+  const _sbRpc = sb.rpc.bind(sb);
+  sb.rpc = (fn, args) => trackWrite(_sbRpc(fn, args));
+}
+
+/* ---------- realtime: other devices' changes appear without refreshing ---------- */
+let rtTimer = null;
+let rtPendingWhileModal = false;
+function scheduleRefresh(){
+  clearTimeout(rtTimer);
+  rtTimer = setTimeout(refreshFromServer, 300);
+}
+async function refreshFromServer(){
+  await loadAll();
+  if($('#modal-overlay').classList.contains('open')){
+    rtPendingWhileModal = true;   // don't redraw under an open form; redraw when it closes
+    return;
+  }
+  renderCurrentView();
+}
+function subscribeRealtime(){
+  const tables = ['clip_types','daily_overrides','work_tasks','channels','people','app_settings'];
+  let ch = sb.channel('planner-live');
+  tables.forEach(t=>{
+    ch = ch.on('postgres_changes', {event:'*', schema:'public', table:t}, scheduleRefresh);
+  });
+  ch.subscribe();
+}
+
 function showFatalError(msg){
   let el = document.getElementById('fatal-error-banner');
   if(!el){
@@ -295,6 +354,7 @@ if (typeof supabase === 'undefined') {
   throw new Error('supabase-js failed to load');
 }
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+installWriteTracking();
 
 const WEEKDAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -356,6 +416,7 @@ async function afterSignIn(){
   buildTabs();
   await loadAll();
   renderCurrentView();
+  subscribeRealtime();
 }
 
 function showLogin(){
@@ -1015,7 +1076,10 @@ $('#invite-add-btn').addEventListener('click', ()=>{
 
 /* ---------------- modal helpers ---------------- */
 function openModal(){ $('#modal-overlay').classList.add('open'); }
-function closeModal(){ $('#modal-overlay').classList.remove('open'); $('#modal').innerHTML=''; }
+function closeModal(){
+  $('#modal-overlay').classList.remove('open'); $('#modal').innerHTML='';
+  if(rtPendingWhileModal){ rtPendingWhileModal=false; renderCurrentView(); }
+}
 $('#modal-overlay').addEventListener('click', e=>{ if(e.target.id==='modal-overlay') closeModal(); });
 </script>
 </body>
