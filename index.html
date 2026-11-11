@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>แพลนลงคลิป</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <style>
 :root{
   --bg:#f7f8fa; --panel:#ffffff; --border:#e4e7ec; --text:#1b1f24; --muted:#6b7280;
@@ -272,6 +272,10 @@ h3{font-size:15px;margin:0 0 8px}
 /* ---------------- config ---------------- */
 const SUPABASE_URL = 'https://ucriaoofbfmnzxvsvsyf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable__EOnB8E1kwuSYPbj4VWa3g_4jBBDbgI';
+if (typeof supabase === 'undefined') {
+  document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;text-align:center">โหลดไลบรารีไม่สำเร็จ (เช็กอินเทอร์เน็ต หรือลองรีเฟรชอีกครั้ง)</div>';
+  throw new Error('supabase-js failed to load');
+}
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const WEEKDAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
