@@ -255,7 +255,12 @@ h3{font-size:15px;margin:0 0 8px}
         <div id="ppl-list"></div>
       </div>
       <div class="panel panel-pad">
-        <div class="section-head"><h3>เชิญผู้ใช้งาน (อนุมัติล่วงหน้า)</h3><button class="btn small primary" id="invite-add-btn">+ เชิญ</button></div>
+        <div class="section-head"><h3>บัญชีและรหัสผ่าน</h3><button class="btn small primary" id="invite-add-btn">+ เพิ่มบัญชี</button></div>
+        <p class="muted" style="font-size:12px">ตั้งรหัสผ่านให้แต่ละบัญชีแยกกันได้ บัญชีที่เพิ่มใหม่จะล็อกอินด้วยรหัสที่ตั้งไว้ทันที</p>
+        <div id="login-accounts-list"></div>
+      </div>
+      <div class="panel panel-pad" style="display:none">
+        <div class="section-head"><h3>เชิญผู้ใช้งาน (อนุมัติล่วงหน้า)</h3></div>
         <p class="muted" style="font-size:12px">เพิ่มอีเมลที่อนุญาตไว้ล่วงหน้า เมื่อเขาล็อกอินครั้งแรกระบบจะให้สิทธิ์ตามที่ตั้งไว้ทันที</p>
         <div id="invite-list"></div>
       </div>
@@ -297,7 +302,7 @@ const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.
 /* ---------------- state ---------------- */
 const S = {
   session:null, role:null, personId:null, email:null,
-  channels:[], clipTypes:[], overrides:[], workTasks:[], people:[], settings:{statuses:[]}, pendingRoles:[],
+  channels:[], clipTypes:[], overrides:[], workTasks:[], people:[], settings:{statuses:[]}, pendingRoles:[], loginAccounts:[],
   tab:'calendar',
   calMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   kpiMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -372,6 +377,7 @@ async function loadLoginDirectory(){
     showFatalError('โหลดรายชื่อล็อกอินไม่สำเร็จ: '+error.message);
     return;
   }
+  S.loginAccounts = data || [];
   if(!data || !data.length){
     sel.innerHTML = '<option value="">(ยังไม่มีรายชื่อ — ให้แอดมินเพิ่มในหน้าตั้งค่า)</option>';
     return;
@@ -905,6 +911,30 @@ function renderSettings(){
       <div>${esc(p.email)} <span class="pill" style="background:var(--accent-weak);color:var(--accent)">${p.role==='admin'?'แอดมิน':'ทีมงาน'}</span></div>
       <button class="btn small danger" data-del="${p.email}">ลบ</button>
     </div>`).join('') || '<div class="empty">ยังไม่มีคำเชิญ</div>';
+  $('#login-accounts-list').innerHTML = S.loginAccounts.map(a=>`
+    <div class="row between" style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-weight:600">${esc(a.label)}</div><div class="muted" style="font-size:12px">${esc(a.email)}</div></div>
+      <button class="btn small" data-setpw="${esc(a.email)}">ตั้งรหัสผ่านใหม่</button>
+    </div>`).join('') || '<div class="empty">ยังไม่มีบัญชี</div>';
+  $all('[data-setpw]', $('#login-accounts-list')).forEach(b=> b.addEventListener('click', ()=>{
+    const email = b.dataset.setpw;
+    $('#modal').innerHTML = `
+      <div class="modal-head"><h3>ตั้งรหัสผ่านใหม่</h3><button class="btn small" id="m-close">✕</button></div>
+      <div class="modal-body">
+        <div class="muted" style="font-size:13px">${esc(email)}</div>
+        <div class="field"><label>รหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)</label><input id="f-pw" type="text" autocomplete="off"></div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="m-cancel">ยกเลิก</button><button class="btn primary" id="m-save">บันทึก</button></div>`;
+    openModal();
+    $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+    $('#m-save').onclick = async ()=>{
+      const pw = $('#f-pw').value;
+      if(pw.length < 4) return toast('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร', true);
+      const {error} = await sb.rpc('admin_set_password', { p_email: email, p_password: pw });
+      if(error) return toast(error.message, true);
+      closeModal(); toast('เปลี่ยนรหัสผ่านแล้ว');
+    };
+  }));
   $all('[data-del]', $('#invite-list')).forEach(b=> b.addEventListener('click', async ()=>{
     const {error} = await sb.from('pending_roles').delete().eq('email', b.dataset.del);
     if(error) return toast(error.message, true);
@@ -964,7 +994,7 @@ $('#invite-add-btn').addEventListener('click', ()=>{
       <div class="field"><label>ชื่อที่จะโชว์ในหน้าล็อกอิน</label><input id="f-label" placeholder="เช่น ฟิว (ทีมงาน)"></div>
       <div class="field"><label>สิทธิ์</label><select id="f-role"><option value="team">ทีมงาน</option><option value="admin">แอดมิน</option></select></div>
       <div class="field"><label>ผูกกับคน (ไม่บังคับ)</label><select id="f-person"><option value="">- ไม่ผูก -</option>${pplOpts}</select></div>
-      <p class="muted" style="font-size:12px">คนนี้จะล็อกอินด้วยรหัสผ่านร่วมของทีมเดียวกับทุกคน</p>
+      <div class="field"><label>รหัสผ่านของบัญชีนี้ (อย่างน้อย 4 ตัวอักษร)</label><input id="f-password" type="text" autocomplete="off"></div>
     </div>
     <div class="modal-foot"><button class="btn" id="m-cancel">ยกเลิก</button><button class="btn primary" id="m-save">บันทึก</button></div>`;
   openModal();
@@ -974,10 +1004,12 @@ $('#invite-add-btn').addEventListener('click', ()=>{
     const label = $('#f-label').value.trim() || email;
     const role = $('#f-role').value;
     const personId = $('#f-person').value || null;
-    const {error} = await sb.rpc('admin_create_login_account', { p_email: email, p_label: label, p_role: role, p_person_id: personId });
+    const password = $('#f-password').value;
+    if(password.length < 4) return toast('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร', true);
+    const {error} = await sb.rpc('admin_create_login_account', { p_email: email, p_label: label, p_role: role, p_person_id: personId, p_password: password });
     if(error) return toast(error.message, true);
     S.pendingRoles = S.pendingRoles.filter(p=>p.email!==email); S.pendingRoles.push({email, role, person_id:personId});
-    closeModal(); renderSettings(); toast('เพิ่มบัญชีแล้ว ใช้รหัสผ่านร่วมของทีมล็อกอินได้เลย');
+    closeModal(); await loadLoginDirectory(); renderSettings(); toast('เพิ่มบัญชีแล้ว');
   };
 });
 
