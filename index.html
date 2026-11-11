@@ -31,7 +31,6 @@ a{color:var(--accent);text-decoration:none}
 #app{display:none;min-height:100vh}
 #app.ready{display:flex;flex-direction:column}
 
-/* top bar */
 .topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;flex-wrap:wrap}
 .brand{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
 .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
@@ -62,7 +61,7 @@ main{flex:1;padding:18px;max-width:1280px;margin:0 auto;width:100%}
 .muted{color:var(--muted)}
 h2{font-size:18px;margin:0 0 12px}
 h3{font-size:15px;margin:0 0 8px}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
 
 /* login */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -72,26 +71,32 @@ h3{font-size:15px;margin:0 0 8px}
 .login-card input{width:100%;margin-bottom:10px}
 .login-card .btn{width:100%}
 .login-msg{margin-top:12px;font-size:13px;padding:10px;border-radius:8px}
-.login-msg.ok{background:var(--ok-weak);color:var(--ok)}
 .login-msg.err{background:var(--danger-weak);color:var(--danger)}
-#pending-screen{text-align:center;padding:40px 20px}
 
 /* calendar */
-.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .cal-head .month-label{font-weight:700;font-size:16px;min-width:140px;text-align:center}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .cal-dow{font-size:12px;color:var(--muted);text-align:center;padding:4px 0;font-weight:600}
-.cal-day{border:1px solid var(--border);border-radius:8px;min-height:92px;padding:5px;background:var(--bg);display:flex;flex-direction:column;gap:3px}
-.cal-day.other-month{opacity:.35}
+.cal-day{border:1px solid var(--border);border-radius:8px;min-height:110px;padding:5px;background:var(--bg);display:flex;flex-direction:column;gap:3px;transition:background .15s}
+.cal-day.other-month{opacity:.4}
 .cal-day.today{border-color:var(--accent)}
+.cal-day.drop-over{background:var(--accent-weak);outline:2px dashed var(--accent);outline-offset:-2px}
+.cal-day-head{display:flex;align-items:center;justify-content:space-between}
 .cal-day-num{font-size:12px;font-weight:700;color:var(--muted)}
-.occ-chip{font-size:11px;padding:2px 5px;border-radius:5px;color:#fff;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:flex;align-items:center;gap:3px}
-.occ-chip .sk{opacity:.5;text-decoration:line-through}
-.status-dot{width:6px;height:6px;border-radius:50%;background:#fff;flex:none}
+.cal-add{border:none;background:transparent;color:var(--muted);font-size:14px;line-height:1;padding:0 4px;border-radius:4px}
+.cal-add:hover{color:var(--accent);background:var(--accent-weak)}
+.occ-chip{font-size:11px;padding:2px 6px;border-radius:5px;color:#fff;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;user-select:none}
+.occ-chip[draggable="true"]{cursor:grab}
+.occ-chip.dragging{opacity:.4}
+.occ-more{font-size:10px;color:var(--muted)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend .d{width:8px;height:8px;border-radius:50%;display:inline-block}
 
-/* clip type list */
+/* clip types */
 .ct-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--bg)}
-.ct-top{display:flex;align-items:center;gap:10px}
+.ct-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .ct-color{width:10px;height:10px;border-radius:50%;flex:none}
 .ct-name{font-weight:700;flex:1}
 .pill{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
@@ -105,15 +110,23 @@ h3{font-size:15px;margin:0 0 8px}
 .avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;flex:none}
 
 /* kpi */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
 .kpi-tile{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--bg)}
 .kpi-tile .num{font-size:22px;font-weight:800}
 .kpi-tile .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+.kpi-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media (max-width:760px){ .kpi-two{grid-template-columns:1fr} }
+.donut{width:150px;height:150px;border-radius:50%;flex:none;position:relative}
+.donut::after{content:"";position:absolute;inset:32px;background:var(--panel);border-radius:50%}
+.donut-legend{font-size:13px;display:flex;flex-direction:column;gap:6px}
+.donut-legend span{display:inline-flex;align-items:center;gap:6px}
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
 .bar-row .lbl{width:150px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar-track{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden}
-.bar-fill{height:100%;background:var(--accent);border-radius:5px}
-.bar-val{width:70px;flex:none;text-align:right;color:var(--muted)}
+.bar-track{flex:1;height:12px;background:var(--border);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px}
+.bar-val{width:110px;flex:none;text-align:right;color:var(--muted)}
+.score-scale{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.score-scale i{display:inline-block;width:22px;height:14px;border-radius:3px}
 
 /* modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
@@ -122,7 +135,7 @@ h3{font-size:15px;margin:0 0 8px}
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
 .modal-head h3{margin:0}
 .modal-body{padding:16px;display:flex;flex-direction:column;gap:10px}
-.modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
 .field input,.field select,.field textarea{width:100%}
 .check-grid{display:flex;gap:6px;flex-wrap:wrap}
@@ -132,9 +145,6 @@ h3{font-size:15px;margin:0 0 8px}
 .toast{position:fixed;bottom:18px;right:18px;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transform:translateY(8px);transition:.2s}
 .toast.show{opacity:1;transform:translateY(0)}
 .empty{color:var(--muted);text-align:center;padding:24px;font-size:13px}
-.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.legend .d{width:8px;height:8px;border-radius:50%;display:inline-block}
 </style>
 </head>
 <body>
@@ -142,8 +152,8 @@ h3{font-size:15px;margin:0 0 8px}
 <div id="login-screen" class="login-wrap">
   <div class="login-card">
     <h1>แพลนลงคลิป</h1>
-    <p>เลือกชื่อของคุณ แล้วใส่รหัสผ่านของทีม</p>
-    <select id="login-email"><option value="">— เลือกชื่อ —</option></select>
+    <p>ใส่อีเมลและรหัสผ่านของคุณเพื่อเข้าสู่ระบบ</p>
+    <input id="login-email" type="email" placeholder="อีเมล" autocomplete="username">
     <input id="login-password" type="password" placeholder="รหัสผ่าน" autocomplete="current-password">
     <button class="btn primary" id="login-btn">เข้าสู่ระบบ</button>
     <div id="login-msg" class="login-msg hidden"></div>
@@ -151,7 +161,7 @@ h3{font-size:15px;margin:0 0 8px}
 </div>
 
 <div id="pending-screen" class="login-wrap hidden">
-  <div class="login-card" id="pending-screen">
+  <div class="login-card">
     <h1>ยังไม่ได้รับอนุญาต</h1>
     <p>อีเมลนี้ยังไม่ถูกเพิ่มในระบบ กรุณาติดต่อแอดมินเพื่อขอสิทธิ์เข้าใช้งาน</p>
     <button class="btn" id="pending-logout-btn">ออกจากระบบ</button>
@@ -182,6 +192,7 @@ h3{font-size:15px;margin:0 0 8px}
           <select id="cal-colorby" class="btn small">
             <option value="status">สีตามสถานะ</option>
             <option value="type">สีตามประเภทคลิป</option>
+            <option value="tag">สีตามหมวดหมู่</option>
           </select>
         </div>
         <div class="legend" id="cal-legend"></div>
@@ -209,16 +220,13 @@ h3{font-size:15px;margin:0 0 8px}
 
     <!-- team -->
     <section class="view" data-view="team">
-      <div class="section-head">
-        <h2>ทีมงาน</h2>
-      </div>
+      <div class="section-head"><h2>ทีมงาน</h2></div>
       <div class="panel panel-pad" style="margin-bottom:14px">
         <h3>งานตัดของฉัน</h3>
         <div id="team-my-tasks"></div>
       </div>
       <div class="panel panel-pad admin-only hidden" id="team-admin-panel">
         <h3>มอบหมายงานให้ทีมงาน</h3>
-        <p class="muted" style="font-size:12px">เลือกงานด้านล่าง แล้วกดเพิ่ม/นำออกผู้รับผิดชอบ</p>
         <div id="team-admin-tasks"></div>
       </div>
     </section>
@@ -226,17 +234,31 @@ h3{font-size:15px;margin:0 0 8px}
     <!-- kpi -->
     <section class="view" data-view="kpi">
       <div class="section-head">
-        <h2>สรุปรายเดือน</h2>
         <div class="row">
           <button class="btn small" id="kpi-prev">‹</button>
-          <div id="kpi-label" style="font-weight:700;min-width:120px;text-align:center"></div>
+          <h2 id="kpi-label" style="margin:0;min-width:140px;text-align:center"></h2>
           <button class="btn small" id="kpi-next">›</button>
+        </div>
+        <div class="row wrap">
+          <select id="kpi-status" class="btn small"></select>
+          <select id="kpi-tag" class="btn small"></select>
         </div>
       </div>
       <div class="kpi-grid" id="kpi-tiles"></div>
+      <div class="kpi-two">
+        <div class="panel panel-pad">
+          <h3>สัดส่วนสถานะคลิปของเดือนนี้</h3>
+          <div class="row" style="gap:18px;align-items:center" id="kpi-donut"></div>
+        </div>
+        <div class="panel panel-pad">
+          <h3>คลิปยอดวิวสูงสุด 5 อันดับ</h3>
+          <div id="kpi-top"></div>
+        </div>
+      </div>
       <div class="panel panel-pad" style="margin-bottom:14px">
         <h3>ยอดวิวตามประเภทคลิป</h3>
         <div id="kpi-views-by-type"></div>
+        <div class="score-scale" id="kpi-score-scale"></div>
       </div>
       <div class="panel panel-pad">
         <h3>ยอดวิวตามหมวดหมู่</h3>
@@ -260,11 +282,6 @@ h3{font-size:15px;margin:0 0 8px}
         <p class="muted" style="font-size:12px">ตั้งรหัสผ่านให้แต่ละบัญชีแยกกันได้ บัญชีที่เพิ่มใหม่จะล็อกอินด้วยรหัสที่ตั้งไว้ทันที</p>
         <div id="login-accounts-list"></div>
       </div>
-      <div class="panel panel-pad" style="display:none">
-        <div class="section-head"><h3>เชิญผู้ใช้งาน (อนุมัติล่วงหน้า)</h3></div>
-        <p class="muted" style="font-size:12px">เพิ่มอีเมลที่อนุญาตไว้ล่วงหน้า เมื่อเขาล็อกอินครั้งแรกระบบจะให้สิทธิ์ตามที่ตั้งไว้ทันที</p>
-        <div id="invite-list"></div>
-      </div>
     </section>
   </main>
 </div>
@@ -278,7 +295,27 @@ h3{font-size:15px;margin:0 0 8px}
 /* ---------------- config ---------------- */
 const SUPABASE_URL = 'https://ucriaoofbfmnzxvsvsyf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable__EOnB8E1kwuSYPbj4VWa3g_4jBBDbgI';
-/* ---------- save status: tells the user whether the last change really reached the database ---------- */
+
+function showFatalError(msg){
+  let el = document.getElementById('fatal-error-banner');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'fatal-error-banner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:10px 16px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:40vh;overflow:auto';
+    document.body.prepend(el);
+  }
+  el.textContent += (el.textContent?'\n':'') + msg;
+}
+window.addEventListener('error', e=> showFatalError('เกิดข้อผิดพลาด: '+(e.message||e.error||e)));
+window.addEventListener('unhandledrejection', e=> showFatalError('เกิดข้อผิดพลาด: '+(e.reason && e.reason.message || e.reason)));
+
+if (typeof supabase === 'undefined') {
+  showFatalError('โหลดไลบรารี supabase-js ไม่สำเร็จ (เช็กอินเทอร์เน็ต หรือลองรีเฟรชอีกครั้ง)');
+  throw new Error('supabase-js failed to load');
+}
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ---------- save status + write tracking: every write reports its real outcome ---------- */
 let saveStatusTimer = null;
 function setSave(state){
   const el = document.getElementById('save-status');
@@ -288,7 +325,6 @@ function setSave(state){
   else if(state==='saved'){ el.style.color='var(--ok)'; el.textContent='บันทึกแล้ว ✓'; saveStatusTimer=setTimeout(()=>{ el.textContent=''; },2500); }
   else if(state==='error'){ el.style.color='var(--danger)'; el.textContent='บันทึกไม่สำเร็จ — ลองใหม่อีกครั้ง'; }
 }
-// wrap writes (insert/update/upsert/delete/rpc) so every mutation reports its real outcome
 function trackWrite(builder){
   const origThen = builder.then.bind(builder);
   builder.then = (res, rej) => {
@@ -311,70 +347,25 @@ function installWriteTracking(){
   const _sbRpc = sb.rpc.bind(sb);
   sb.rpc = (fn, args) => trackWrite(_sbRpc(fn, args));
 }
-
-/* ---------- realtime: other devices' changes appear without refreshing ---------- */
-let rtTimer = null;
-let rtPendingWhileModal = false;
-function scheduleRefresh(){
-  clearTimeout(rtTimer);
-  rtTimer = setTimeout(refreshFromServer, 300);
-}
-async function refreshFromServer(){
-  await loadAll();
-  if($('#modal-overlay').classList.contains('open')){
-    rtPendingWhileModal = true;   // don't redraw under an open form; redraw when it closes
-    return;
-  }
-  renderCurrentView();
-}
-function subscribeRealtime(){
-  const tables = ['clip_types','daily_overrides','work_tasks','channels','people','app_settings'];
-  let ch = sb.channel('planner-live');
-  tables.forEach(t=>{
-    ch = ch.on('postgres_changes', {event:'*', schema:'public', table:t}, scheduleRefresh);
-  });
-  ch.subscribe();
-}
-
-function showFatalError(msg){
-  let el = document.getElementById('fatal-error-banner');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'fatal-error-banner';
-    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:10px 16px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:40vh;overflow:auto';
-    document.body.prepend(el);
-  }
-  el.textContent += (el.textContent?'\n':'') + msg;
-}
-window.addEventListener('error', e=> showFatalError('เกิดข้อผิดพลาด: '+(e.message||e.error||e)));
-window.addEventListener('unhandledrejection', e=> showFatalError('เกิดข้อผิดพลาด: '+(e.reason && e.reason.message || e.reason)));
-
-if (typeof supabase === 'undefined') {
-  showFatalError('โหลดไลบรารี supabase-js ไม่สำเร็จ (เช็กอินเทอร์เน็ต หรือลองรีเฟรชอีกครั้ง)');
-  throw new Error('supabase-js failed to load');
-}
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 installWriteTracking();
-
-const WEEKDAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
-const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
 /* ---------------- state ---------------- */
 const S = {
   session:null, role:null, personId:null, email:null,
-  channels:[], clipTypes:[], overrides:[], workTasks:[], people:[], settings:{statuses:[]}, pendingRoles:[], loginAccounts:[],
+  channels:[], clipTypes:[], overrides:[], workTasks:[], people:[],
+  settings:{statuses:[]}, loginAccounts:[],
   tab:'calendar',
   calMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   kpiMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  kpiStatus:'', kpiTag:'',
   colorBy:'status'
 };
 
-const TABS_ADMIN = [
-  ['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน'],['settings','ตั้งค่า']
-];
-const TABS_TEAM = [
-  ['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน']
-];
+const WEEKDAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TABS_ADMIN = [['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน'],['settings','ตั้งค่า']];
+const TABS_TEAM  = [['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน']];
+const TAG_PALETTE = ['#6d5efc','#e1306c','#0891b2','#16a34a','#ea580c','#db2777','#ca8a04','#0d9488','#7c3aed','#dc2626'];
 
 /* ---------------- utils ---------------- */
 function $(sel,root=document){return root.querySelector(sel)}
@@ -392,7 +383,17 @@ function personOf(id){ return S.people.find(p=>p.id===id) }
 function channelOf(id){ return S.channels.find(c=>c.id===id) }
 function clipTypeOf(id){ return S.clipTypes.find(c=>c.id===id) }
 function isAdmin(){ return S.role==='admin' }
-function isTeam(){ return S.role==='team' }
+function tagColor(tag){
+  let h=0; for(const ch of String(tag)) h=(h*31+ch.charCodeAt(0))>>>0;
+  return TAG_PALETTE[h % TAG_PALETTE.length];
+}
+// 10-step sequential yellow: 1 = palest, 10 = deepest
+function scoreColor(s){
+  const k = Math.max(1, Math.min(10, Math.round(s)));
+  const light = 93 - (k-1)*5.2;
+  return `hsl(46 96% ${light.toFixed(1)}%)`;
+}
+function occStatus(o){ return (o.override && o.override.status) || o.type.status; }
 
 /* ---------------- auth ---------------- */
 sb.auth.onAuthStateChange(async (event, session)=>{
@@ -418,7 +419,6 @@ async function afterSignIn(){
   renderCurrentView();
   subscribeRealtime();
 }
-
 function showLogin(){
   $('#login-screen').classList.remove('hidden');
   $('#pending-screen').classList.add('hidden');
@@ -429,37 +429,20 @@ function showPending(){
   $('#pending-screen').classList.remove('hidden');
   $('#app').classList.remove('ready');
 }
-
-async function loadLoginDirectory(){
-  const {data, error} = await sb.from('login_directory').select('*').order('label');
-  const sel = $('#login-email');
-  if(error){
-    sel.innerHTML = '<option value="">(โหลดรายชื่อไม่สำเร็จ)</option>';
-    showFatalError('โหลดรายชื่อล็อกอินไม่สำเร็จ: '+error.message);
-    return;
-  }
-  S.loginAccounts = data || [];
-  if(!data || !data.length){
-    sel.innerHTML = '<option value="">(ยังไม่มีรายชื่อ — ให้แอดมินเพิ่มในหน้าตั้งค่า)</option>';
-    return;
-  }
-  sel.innerHTML = '<option value="">— เลือกชื่อ —</option>' + data.map(d=>`<option value="${esc(d.email)}">${esc(d.label)}</option>`).join('');
-}
-loadLoginDirectory();
-
 $('#login-btn').addEventListener('click', async ()=>{
-  const email = $('#login-email').value;
+  const email = $('#login-email').value.trim();
   const password = $('#login-password').value;
   const msg = $('#login-msg');
-  if(!email){ msg.classList.remove('hidden'); msg.className='login-msg err'; msg.textContent='กรุณาเลือกชื่อ'; return; }
+  if(!email){ msg.classList.remove('hidden'); msg.className='login-msg err'; msg.textContent='กรุณาใส่อีเมล'; return; }
   if(!password){ msg.classList.remove('hidden'); msg.className='login-msg err'; msg.textContent='กรุณาใส่รหัสผ่าน'; return; }
   $('#login-btn').disabled = true;
   const {error} = await sb.auth.signInWithPassword({ email, password });
   $('#login-btn').disabled = false;
   msg.classList.remove('hidden');
-  if(error){ msg.className='login-msg err'; msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: รหัสผ่านไม่ถูกต้อง'; }
-  else { msg.classList.add('hidden'); }
+  if(error){ msg.className='login-msg err'; msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: อีเมลหรือรหัสผ่านไม่ถูกต้อง'; }
+  else { msg.classList.add('hidden'); $('#login-password').value=''; }
 });
+$('#login-password').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#login-btn').click(); });
 $('#logout-btn').addEventListener('click', ()=>sb.auth.signOut());
 $('#pending-logout-btn').addEventListener('click', ()=>sb.auth.signOut());
 
@@ -482,14 +465,14 @@ function renderCurrentView(){
 
 /* ---------------- data load ---------------- */
 async function loadAll(){
-  const [ch, ct, ov, wt, ppl, st, pend] = await Promise.all([
+  const [ch, ct, ov, wt, ppl, st, acc] = await Promise.all([
     sb.from('channels').select('*').order('created_at'),
     sb.from('clip_types').select('*').order('created_at'),
     sb.from('daily_overrides').select('*'),
     sb.from('work_tasks').select('*').order('created_at'),
     sb.from('people').select('*'),
     sb.from('app_settings').select('*'),
-    isAdmin() ? sb.from('pending_roles').select('*') : Promise.resolve({data:[]})
+    sb.from('login_directory').select('*').order('label')
   ]);
   [ch,ct,ov,wt,ppl,st].forEach(r=>{ if(r.error) toast('โหลดข้อมูลผิดพลาด: '+r.error.message, true); });
   S.channels = ch.data||[];
@@ -497,57 +480,65 @@ async function loadAll(){
   S.overrides = ov.data||[];
   S.workTasks = wt.data||[];
   S.people = ppl.data||[];
-  S.pendingRoles = pend.data||[];
+  S.loginAccounts = acc.data||[];
   const settingsRow = (st.data||[]).find(r=>r.key==='statuses');
   S.settings.statuses = settingsRow ? settingsRow.value : [];
 }
 
-/* ---------------- occurrence engine ---------------- */
+/* ---------- realtime: other devices' changes appear without refreshing ---------- */
+let rtTimer = null;
+let rtPendingWhileModal = false;
+function scheduleRefresh(){ clearTimeout(rtTimer); rtTimer = setTimeout(refreshFromServer, 300); }
+async function refreshFromServer(){
+  await loadAll();
+  if($('#modal-overlay').classList.contains('open')){ rtPendingWhileModal = true; return; }
+  renderCurrentView();
+}
+function subscribeRealtime(){
+  const tables = ['clip_types','daily_overrides','work_tasks','channels','people','app_settings'];
+  let ch = sb.channel('planner-live');
+  tables.forEach(t=>{ ch = ch.on('postgres_changes', {event:'*', schema:'public', table:t}, scheduleRefresh); });
+  ch.subscribe();
+}
+
+/* ---------------- occurrence engine ----------------
+   An occurrence is a (clip type, date, n) triple.
+   - The rule (weekly/monthly/specific dates) produces base occurrence n=1 on its dates.
+   - A daily_overrides row at (type, date, n) either adds an occurrence or, with is_skipped, removes one.
+   - A row at n=1 replaces the base occurrence on that date.                                   */
 function ruleOccursOn(type, date){
   const ds = dstr(date);
   if((type.specific_dates||[]).includes(ds)) return true;
   if(type.starts_on && ds < type.starts_on) return false;
   if(type.ends_on && ds > type.ends_on) return false;
-  if(type.freq==='w'){ return (type.weekdays||[]).includes(date.getDay()); }
-  if(type.freq==='m'){ return (type.month_days||[]).includes(date.getDate()); }
+  if(type.freq==='w') return (type.weekdays||[]).includes(date.getDay());
+  if(type.freq==='m') return (type.month_days||[]).includes(date.getDate());
   return false;
 }
-// returns array of {date, n, type, override} for a given range [from,to] inclusive
-function occurrencesInRange(from, to){
+function occurrencesInRange(from, to, includeDone=true){
+  const rowsByKey = {};
+  S.overrides.forEach(o=>{ (rowsByKey[o.clip_type_id+'|'+o.occurs_on] ||= []).push(o); });
   const out = [];
-  const ovByTypeDate = {};
-  S.overrides.forEach(o=>{
-    const k = o.clip_type_id+'|'+o.occurs_on;
-    (ovByTypeDate[k] = ovByTypeDate[k]||[]).push(o);
-  });
   S.clipTypes.forEach(type=>{
+    if(!includeDone && type.is_done) return;
     const d = new Date(from);
-    const seenDates = new Set();
     while(d<=to){
       const ds = dstr(d);
-      if(ruleOccursOn(type,d)){
-        seenDates.add(ds);
-        const key = type.id+'|'+ds;
-        const rows = (ovByTypeDate[key]||[]).sort((a,b)=>a.occurrence_no-b.occurrence_no);
-        if(rows.length){
-          rows.forEach(ov=> out.push({date:ds, n:ov.occurrence_no, type, override:ov}));
-        } else {
-          out.push({date:ds, n:1, type, override:null});
-        }
+      const rows = rowsByKey[type.id+'|'+ds] || [];
+      if(ruleOccursOn(type,d) && !rows.some(r=>r.occurrence_no===1)){
+        out.push({date:ds, n:1, type, override:null});
       }
+      rows.forEach(r=> out.push({date:ds, n:r.occurrence_no, type, override:r}));
       d.setDate(d.getDate()+1);
     }
-    // orphan overrides: rows whose date falls in range but rule didn't fire there (manual one-offs)
-    Object.keys(ovByTypeDate).forEach(key=>{
-      if(!key.startsWith(type.id+'|')) return;
-      const ds = key.split('|')[1];
-      if(seenDates.has(ds)) return;
-      const dd = parseD(ds);
-      if(dd<from || dd>to) return;
-      ovByTypeDate[key].forEach(ov=> out.push({date:ds, n:ov.occurrence_no, type, override:ov}));
-    });
   });
   return out.filter(o=> !(o.override && o.override.is_skipped));
+}
+function nextN(tid, ds){
+  const type = clipTypeOf(tid);
+  let mx = S.overrides.filter(o=>o.clip_type_id===tid && o.occurs_on===ds).reduce((a,o)=>Math.max(a,o.occurrence_no),0);
+  if(type && ruleOccursOn(type, parseD(ds))) mx = Math.max(mx,1);
+  return mx+1;
 }
 
 /* ---------------- calendar ---------------- */
@@ -556,49 +547,119 @@ $('#cal-next').addEventListener('click', ()=>{ S.calMonth.setMonth(S.calMonth.ge
 $('#cal-today').addEventListener('click', ()=>{ const n=new Date(); S.calMonth=new Date(n.getFullYear(),n.getMonth(),1); renderCalendar(); });
 $('#cal-colorby').addEventListener('change', e=>{ S.colorBy=e.target.value; renderCalendar(); });
 
+function chipColor(o){
+  if(S.colorBy==='type') return o.type.color;
+  if(S.colorBy==='tag') return tagColor((o.type.tags||[])[0] || 'ไม่มีหมวดหมู่');
+  return statusOf(occStatus(o)).c;
+}
 function renderCalendar(){
   const y = S.calMonth.getFullYear(), m = S.calMonth.getMonth();
   $('#cal-label').textContent = `${MONTH_NAMES[m]} ${y+543}`;
   const first = new Date(y,m,1);
   const gridStart = new Date(first); gridStart.setDate(1-first.getDay());
   const gridEnd = new Date(gridStart); gridEnd.setDate(gridStart.getDate()+41);
-  const occs = occurrencesInRange(gridStart, gridEnd);
+  const occs = occurrencesInRange(gridStart, gridEnd, false);
   const byDate = {};
-  occs.forEach(o=> (byDate[o.date]=byDate[o.date]||[]).push(o));
+  occs.forEach(o=> (byDate[o.date] ||= []).push(o));
   const todayS = dstr(new Date());
 
-  let legendHtml='';
-  if(S.colorBy==='status'){
-    legendHtml = (S.settings.statuses||[]).map(s=>`<span><span class="d" style="background:${s.c}"></span>${esc(s.n)}</span>`).join('');
-  } else {
-    legendHtml = S.clipTypes.map(t=>`<span><span class="d" style="background:${t.color}"></span>${esc(t.name)}</span>`).join('');
+  let legend = '';
+  if(S.colorBy==='status') legend = (S.settings.statuses||[]).map(s=>`<span><span class="d" style="background:${s.c}"></span>${esc(s.n)}</span>`).join('');
+  else if(S.colorBy==='type') legend = S.clipTypes.filter(t=>!t.is_done).map(t=>`<span><span class="d" style="background:${t.color}"></span>${esc(t.name)}</span>`).join('');
+  else {
+    const tags = [...new Set(S.clipTypes.filter(t=>!t.is_done).flatMap(t=>t.tags||[]))];
+    legend = tags.map(tg=>`<span><span class="d" style="background:${tagColor(tg)}"></span>${esc(tg)}</span>`).join('');
   }
-  $('#cal-legend').innerHTML = legendHtml;
+  $('#cal-legend').innerHTML = legend;
 
   let html = WEEKDAY_NAMES.map(w=>`<div class="cal-dow">${w}</div>`).join('');
   const cursor = new Date(gridStart);
   for(let i=0;i<42;i++){
     const ds = dstr(cursor);
     const inMonth = cursor.getMonth()===m;
-    const dayOccs = (byDate[ds]||[]);
-    const chips = dayOccs.slice(0,4).map(o=>{
-      const color = S.colorBy==='status' ? statusOf(o.override?.status || o.type.status).c : o.type.color;
+    const dayOccs = byDate[ds] || [];
+    const chips = dayOccs.slice(0,5).map(o=>{
       const label = o.type.name + (o.n>1?` #${o.n}`:'');
-      return `<div class="occ-chip" style="background:${color}" data-occ='${encodeURIComponent(JSON.stringify({date:o.date,n:o.n,tid:o.type.id}))}'>${esc(label)}</div>`;
+      const st = occStatus(o);
+      const extra = S.colorBy==='status' ? '' : ` · ${st}`;
+      return `<div class="occ-chip" style="background:${chipColor(o)}" title="${esc(label+extra)}"
+               data-tid="${esc(o.type.id)}" data-date="${ds}" data-n="${o.n}"
+               ${isAdmin()?'draggable="true"':''}>${esc(label)}</div>`;
     }).join('');
-    const more = dayOccs.length>4 ? `<div class="muted" style="font-size:10px">+${dayOccs.length-4} เพิ่มเติม</div>` : '';
-    html += `<div class="cal-day ${inMonth?'':'other-month'} ${ds===todayS?'today':''}">
-      <div class="cal-day-num">${cursor.getDate()}</div>${chips}${more}
+    const more = dayOccs.length>5 ? `<div class="occ-more">+${dayOccs.length-5} เพิ่มเติม</div>` : '';
+    html += `<div class="cal-day ${inMonth?'':'other-month'} ${ds===todayS?'today':''}" data-date="${ds}">
+      <div class="cal-day-head"><span class="cal-day-num">${cursor.getDate()}</span>
+        ${isAdmin()?`<button class="cal-add" data-add="${ds}" title="เพิ่มคลิปวันนี้">+</button>`:''}</div>
+      ${chips}${more}
     </div>`;
     cursor.setDate(cursor.getDate()+1);
   }
-  $('#cal-grid').innerHTML = html;
-  $all('.occ-chip', $('#cal-grid')).forEach(el=>{
-    el.addEventListener('click', ()=>{
-      const info = JSON.parse(decodeURIComponent(el.dataset.occ));
-      openOccurrenceModal(info.tid, info.date, info.n);
-    });
+  const grid = $('#cal-grid');
+  grid.innerHTML = html;
+
+  $all('.occ-chip', grid).forEach(el=>{
+    el.addEventListener('click', ()=> openOccurrenceModal(el.dataset.tid, el.dataset.date, Number(el.dataset.n)));
+    if(isAdmin()){
+      el.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', JSON.stringify({tid:el.dataset.tid, date:el.dataset.date, n:Number(el.dataset.n)}));
+        e.dataTransfer.effectAllowed = 'move';
+        el.classList.add('dragging');
+      });
+      el.addEventListener('dragend', ()=> el.classList.remove('dragging'));
+    }
   });
+  if(isAdmin()){
+    $all('.cal-day', grid).forEach(cell=>{
+      cell.addEventListener('dragover', e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; cell.classList.add('drop-over'); });
+      cell.addEventListener('dragleave', ()=> cell.classList.remove('drop-over'));
+      cell.addEventListener('drop', e=>{
+        e.preventDefault(); cell.classList.remove('drop-over');
+        let info; try{ info = JSON.parse(e.dataTransfer.getData('text/plain')); }catch{ return; }
+        moveOccurrence(info.tid, info.date, info.n, cell.dataset.date);
+      });
+    });
+    $all('[data-add]', grid).forEach(b=> b.addEventListener('click', ()=> openAddOccurrenceModal(b.dataset.add)));
+  }
+}
+
+async function moveOccurrence(tid, from, n, to){
+  if(from===to) return;
+  const type = clipTypeOf(tid);
+  const existing = S.overrides.find(o=>o.clip_type_id===tid && o.occurs_on===from && o.occurrence_no===n);
+  const newN = nextN(tid, to);
+  let res;
+  if(existing){
+    res = await sb.from('daily_overrides').update({occurs_on:to, occurrence_no:newN}).eq('clip_type_id',tid).eq('occurs_on',from).eq('occurrence_no',n);
+  } else {
+    res = await sb.from('daily_overrides').insert({clip_type_id:tid, occurs_on:to, occurrence_no:newN});
+  }
+  if(res.error) return toast(res.error.message, true);
+  // the source date would fall back to its rule's base occurrence; hide that base if the moved item was it
+  if(ruleOccursOn(type, parseD(from)) && (!existing || n===1)){
+    const r2 = await sb.from('daily_overrides').insert({clip_type_id:tid, occurs_on:from, occurrence_no:1, is_skipped:true});
+    if(r2.error) return toast(r2.error.message, true);
+  }
+  await loadAll(); renderCalendar(); toast('ย้ายคลิปแล้ว');
+}
+
+function openAddOccurrenceModal(ds){
+  const opts = S.clipTypes.filter(t=>!t.is_done).map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>เพิ่มคลิปลงวันที่</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>วันที่</label><input id="f-date" type="date" value="${ds}"></div>
+      <div class="field"><label>ประเภทคลิป</label><select id="f-type">${opts}</select></div>
+    </div>
+    <div class="modal-foot"><button class="btn" id="m-cancel">ยกเลิก</button><button class="btn primary" id="m-save">เพิ่ม</button></div>`;
+  openModal();
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  $('#m-save').onclick = async ()=>{
+    const date = $('#f-date').value, tid = $('#f-type').value;
+    if(!date || !tid) return toast('เลือกวันที่และประเภทคลิป', true);
+    const {error} = await sb.from('daily_overrides').insert({clip_type_id:tid, occurs_on:date, occurrence_no:nextN(tid,date)});
+    if(error) return toast(error.message, true);
+    closeModal(); await loadAll(); renderCurrentView(); toast('เพิ่มแล้ว');
+  };
 }
 
 /* ---------------- clip types ---------------- */
@@ -635,7 +696,6 @@ function renderClipTypes(){
     t.is_done = !t.is_done; renderClipTypes();
   }));
 }
-
 $('#ct-add-btn').addEventListener('click', ()=> openClipTypeModal(null));
 
 function openClipTypeModal(t){
@@ -652,7 +712,7 @@ function openClipTypeModal(t){
         <div class="field" style="flex:1"><label>สี</label><input id="f-color" type="color" value="${t.color}"></div>
         <div class="field" style="flex:2"><label>สถานะ</label><select id="f-status">${statusOpts}</select></div>
       </div>
-      <div class="field"><label>ช่อง</label><div class="check-grid" id="f-channels">${chPills}</div></div>
+      <div class="field"><label>ช่อง</label><div class="check-grid">${chPills}</div></div>
       <div class="field"><label>รูปแบบรอบ</label>
         <select id="f-freq"><option value="w" ${t.freq==='w'?'selected':''}>รายสัปดาห์</option><option value="m" ${t.freq==='m'?'selected':''}>รายเดือน</option></select>
       </div>
@@ -683,8 +743,7 @@ function openClipTypeModal(t){
     if(!confirm('ลบประเภทคลิปนี้ รวมถึงข้อมูลการลงทั้งหมดของมัน?')) return;
     const {error} = await sb.from('clip_types').delete().eq('id', t.id);
     if(error) return toast(error.message, true);
-    S.clipTypes = S.clipTypes.filter(x=>x.id!==t.id);
-    closeModal(); renderCurrentView();
+    closeModal(); await loadAll(); renderCurrentView();
   };
   $('#m-save').onclick = async ()=>{
     const payload = {
@@ -706,13 +765,11 @@ function openClipTypeModal(t){
       payload.id = 'ct_'+Math.random().toString(36).slice(2,9);
       const {error} = await sb.from('clip_types').insert(payload);
       if(error) return toast(error.message, true);
-      S.clipTypes.push({...payload, is_done:false});
     } else {
       const {error} = await sb.from('clip_types').update(payload).eq('id', t.id);
       if(error) return toast(error.message, true);
-      Object.assign(t, payload);
     }
-    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+    closeModal(); await loadAll(); renderCurrentView(); toast('บันทึกแล้ว');
   };
 }
 
@@ -724,8 +781,8 @@ function openOccurrenceModal(typeId, dateStr, n){
     views:null, score:null, editor_ids:[], channel_ids_override:null
   };
   const canEdit = isAdmin();
-  const statusOpts = ['(ใช้ค่าของประเภทคลิป)',...S.settings.statuses.map(s=>s.n)]
-    .map(s=>`<option value="${s==='(ใช้ค่าของประเภทคลิป)'?'':esc(s)}" ${ov.status===s||(s==='(ใช้ค่าของประเภทคลิป)'&&!ov.status)?'selected':''}>${esc(s)}</option>`).join('');
+  const statusOpts = [{n:'', label:'(ใช้ค่าของประเภทคลิป)'}, ...S.settings.statuses.map(s=>({n:s.n, label:s.n}))]
+    .map(s=>`<option value="${esc(s.n)}" ${(ov.status||'')===s.n?'selected':''}>${esc(s.label)}</option>`).join('');
   const editorPills = S.people.map(p=>`<span class="check-pill ${(ov.editor_ids||[]).includes(p.id)?'on':''}" data-ed="${p.id}">${esc(p.name)}</span>`).join('');
   const chOverridePills = S.channels.map(c=>`<span class="check-pill ${(ov.channel_ids_override||type.channel_ids||[]).includes(c.id)?'on':''}" data-cho="${c.id}">${esc(c.short)}</span>`).join('');
   const myAssigned = S.personId && (ov.editor_ids||[]).includes(S.personId);
@@ -738,8 +795,8 @@ function openOccurrenceModal(typeId, dateStr, n){
         <div class="field" style="flex:1"><label>ยอดวิว</label><input id="f-views" type="number" value="${ov.views??''}" ${canEdit?'':'disabled'}></div>
         <div class="field" style="flex:1"><label>คะแนน (1-10)</label><input id="f-score" type="number" min="1" max="10" value="${ov.score??''}" ${canEdit?'':'disabled'}></div>
       </div>
-      <div class="field"><label>ช่องที่ลงจริง (ถ้าต่างจากค่าเริ่มต้น)</label><div class="check-grid" id="f-chover">${chOverridePills}</div></div>
-      <div class="field"><label>ผู้ตัดต่อ/ผู้รับผิดชอบ</label><div class="check-grid" id="f-editors">${editorPills}</div></div>
+      <div class="field"><label>ช่องที่ลงจริง</label><div class="check-grid">${chOverridePills}</div></div>
+      <div class="field"><label>ผู้ตัดต่อ/ผู้รับผิดชอบ</label><div class="check-grid">${editorPills}</div></div>
       <div class="field"><label>หมายเหตุ</label><textarea id="f-onote" rows="2" ${canEdit?'':'disabled'}>${esc(ov.note)}</textarea></div>
       <label class="row" style="font-size:13px"><input type="checkbox" id="f-skip" ${ov.is_skipped?'checked':''} ${canEdit?'':'disabled'}> ข้ามวันนี้ (ไม่แสดงในปฏิทิน)</label>
     </div>
@@ -755,42 +812,36 @@ function openOccurrenceModal(typeId, dateStr, n){
   }
   $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
   if($('#m-selfassign')) $('#m-selfassign').onclick = async ()=>{
-    const {data, error} = await sb.rpc('toggle_my_editor_assignment', {
+    const {error} = await sb.rpc('toggle_my_editor_assignment', {
       p_clip_type_id: typeId, p_occurs_on: dateStr, p_occurrence_no: n, p_add: !myAssigned
     });
     if(error) return toast(error.message, true);
-    upsertOverrideLocal(data);
-    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+    closeModal(); await loadAll(); renderCurrentView(); toast('บันทึกแล้ว');
   };
   if($('#m-save')) $('#m-save').onclick = async ()=>{
+    const hasViews = $('#f-views').value!=='';
     const payload = {
       clip_type_id: typeId, occurs_on: dateStr, occurrence_no: n,
       status: $('#f-ostatus').value,
-      views: $('#f-views').value===''?null:Number($('#f-views').value),
-      score: $('#f-score').value===''?null:Number($('#f-score').value),
-      views_recorded_on: $('#f-views').value!==''? dstr(new Date()) : null,
+      views: hasViews ? Number($('#f-views').value) : null,
+      score: $('#f-score').value==='' ? null : Number($('#f-score').value),
+      views_recorded_on: hasViews ? dstr(new Date()) : null,
       channel_ids_override: $all('[data-cho].on').map(p=>p.dataset.cho),
       editor_ids: $all('[data-ed].on').map(p=>p.dataset.ed),
       note: $('#f-onote').value,
       is_skipped: $('#f-skip').checked
     };
-    const {data, error} = await sb.from('daily_overrides').upsert(payload, {onConflict:'clip_type_id,occurs_on,occurrence_no'}).select().maybeSingle();
+    const {error} = await sb.from('daily_overrides').upsert(payload, {onConflict:'clip_type_id,occurs_on,occurrence_no'});
     if(error) return toast(error.message, true);
-    upsertOverrideLocal(data);
-    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+    closeModal(); await loadAll(); renderCurrentView(); toast('บันทึกแล้ว');
   };
-}
-function upsertOverrideLocal(row){
-  if(!row) return;
-  const i = S.overrides.findIndex(o=>o.clip_type_id===row.clip_type_id && o.occurs_on===row.occurs_on && o.occurrence_no===row.occurrence_no);
-  if(i>=0) S.overrides[i]=row; else S.overrides.push(row);
 }
 
 /* ---------------- work plan ---------------- */
 function renderWorkPlan(){
   if(!S.workTasks.length){ $('#wt-list').innerHTML='<div class="empty">ยังไม่มีงานตัด</div>'; return; }
   $('#wt-list').innerHTML = S.workTasks.map(w=> workRowHtml(w, isAdmin())).join('');
-  wireWorkRows('#wt-list', isAdmin());
+  wireWorkRows('#wt-list');
 }
 function workRowHtml(w, editable){
   const avatars = (w.assignee_ids||[]).map(id=>{
@@ -807,7 +858,7 @@ function workRowHtml(w, editable){
     ${editable?`<button class="btn small" data-act="edit" data-id="${w.id}">แก้ไข</button>`:''}
   </div>`;
 }
-function wireWorkRows(sel, editable){
+function wireWorkRows(sel){
   $all('.wt-done', $(sel)).forEach(cb=> cb.addEventListener('change', async ()=>{
     const {error} = await sb.from('work_tasks').update({is_done: cb.checked}).eq('id', cb.dataset.id);
     if(error){ cb.checked=!cb.checked; return toast(error.message, true); }
@@ -819,7 +870,7 @@ $('#wt-add-btn').addEventListener('click', ()=> openWorkTaskModal(null));
 
 function openWorkTaskModal(w){
   const isNew = !w;
-  w = w || {id:'', name:'', category:'', starts_on:'', ends_on:'', note:'', color:'#6d5efc', is_done:false, assignee_ids:[], hours:0, source:''};
+  w = w || {id:'', name:'', category:'', starts_on:'', ends_on:'', note:'', is_done:false, assignee_ids:[], hours:0};
   const pplPills = S.people.map(p=>`<span class="check-pill ${(w.assignee_ids||[]).includes(p.id)?'on':''}" data-pp="${p.id}">${esc(p.name)}</span>`).join('');
   $('#modal').innerHTML = `
     <div class="modal-head"><h3>${isNew?'เพิ่ม':'แก้ไข'}งานตัด</h3><button class="btn small" id="m-close">✕</button></div>
@@ -831,7 +882,7 @@ function openWorkTaskModal(w){
         <div class="field" style="flex:1"><label>ถึง</label><input id="f-ends" type="date" value="${w.ends_on||''}"></div>
         <div class="field" style="flex:1"><label>ชั่วโมงงาน</label><input id="f-hours" type="number" value="${w.hours||0}"></div>
       </div>
-      <div class="field"><label>ผู้รับผิดชอบ</label><div class="check-grid" id="f-assignees">${pplPills}</div></div>
+      <div class="field"><label>ผู้รับผิดชอบ</label><div class="check-grid">${pplPills}</div></div>
       <div class="field"><label>หมายเหตุ</label><textarea id="f-note" rows="2">${esc(w.note)}</textarea></div>
     </div>
     <div class="modal-foot">
@@ -846,8 +897,7 @@ function openWorkTaskModal(w){
     if(!confirm('ลบงานนี้?')) return;
     const {error} = await sb.from('work_tasks').delete().eq('id', w.id);
     if(error) return toast(error.message, true);
-    S.workTasks = S.workTasks.filter(x=>x.id!==w.id);
-    closeModal(); renderCurrentView();
+    closeModal(); await loadAll(); renderCurrentView();
   };
   $('#m-save').onclick = async ()=>{
     const payload = {
@@ -862,91 +912,135 @@ function openWorkTaskModal(w){
       payload.id = 'wt_'+Math.random().toString(36).slice(2,9);
       const {error} = await sb.from('work_tasks').insert(payload);
       if(error) return toast(error.message, true);
-      S.workTasks.push({...payload, is_done:false});
     } else {
       const {error} = await sb.from('work_tasks').update(payload).eq('id', w.id);
       if(error) return toast(error.message, true);
-      Object.assign(w, payload);
     }
-    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+    closeModal(); await loadAll(); renderCurrentView(); toast('บันทึกแล้ว');
   };
 }
 
 /* ---------------- team tab ---------------- */
 function renderTeam(){
   const mine = S.personId ? S.workTasks.filter(w=>(w.assignee_ids||[]).includes(S.personId)) : [];
-  $('#team-my-tasks').innerHTML = mine.length ? mine.map(w=>{
-    const assigned = true;
-    return `<div class="task-row ${w.is_done?'done':''}">
+  let html = mine.length ? mine.map(w=>`
+    <div class="task-row ${w.is_done?'done':''}">
       <div style="flex:1"><div style="font-weight:600">${esc(w.name)}</div>
       <div class="muted" style="font-size:12px">${w.starts_on||''} ${w.ends_on?'→ '+w.ends_on:''}</div></div>
       <button class="btn small" data-unassign="${w.id}">นำชื่อฉันออก</button>
-    </div>`;
-  }).join('') : '<div class="empty">ยังไม่มีงานที่รับผิดชอบ</div>';
-  $all('[data-unassign]', $('#team-my-tasks')).forEach(b=> b.addEventListener('click', async ()=>{
-    const {data, error} = await sb.rpc('toggle_my_task_assignment', {p_task_id:b.dataset.unassign, p_add:false});
-    if(error) return toast(error.message, true);
-    const w = S.workTasks.find(x=>x.id===data.id); if(w) w.assignee_ids = data.assignee_ids;
-    renderCurrentView(); toast('อัปเดตแล้ว');
-  }));
-
+    </div>`).join('') : '<div class="empty">ยังไม่มีงานที่รับผิดชอบ</div>';
   if(S.personId && !isAdmin()){
-    // offer self-assign on unassigned-to-me tasks too, appended below
     const others = S.workTasks.filter(w=>!(w.assignee_ids||[]).includes(S.personId) && !w.is_done);
     if(others.length){
-      $('#team-my-tasks').innerHTML += `<h3 style="margin-top:14px">งานที่เปิดให้รับเพิ่ม</h3>` + others.map(w=>`
+      html += `<h3 style="margin-top:14px">งานที่เปิดให้รับเพิ่ม</h3>` + others.map(w=>`
         <div class="task-row">
           <div style="flex:1"><div style="font-weight:600">${esc(w.name)}</div></div>
           <button class="btn small primary" data-assign="${w.id}">รับงานนี้</button>
         </div>`).join('');
-      $all('[data-assign]', $('#team-my-tasks')).forEach(b=> b.addEventListener('click', async ()=>{
-        const {data, error} = await sb.rpc('toggle_my_task_assignment', {p_task_id:b.dataset.assign, p_add:true});
-        if(error) return toast(error.message, true);
-        const w = S.workTasks.find(x=>x.id===data.id); if(w) w.assignee_ids = data.assignee_ids;
-        renderCurrentView(); toast('รับงานแล้ว');
-      }));
     }
   }
-
+  $('#team-my-tasks').innerHTML = html;
+  $all('[data-unassign]', $('#team-my-tasks')).forEach(b=> b.addEventListener('click', async ()=>{
+    const {error} = await sb.rpc('toggle_my_task_assignment', {p_task_id:b.dataset.unassign, p_add:false});
+    if(error) return toast(error.message, true);
+    await loadAll(); renderCurrentView();
+  }));
+  $all('[data-assign]', $('#team-my-tasks')).forEach(b=> b.addEventListener('click', async ()=>{
+    const {error} = await sb.rpc('toggle_my_task_assignment', {p_task_id:b.dataset.assign, p_add:true});
+    if(error) return toast(error.message, true);
+    await loadAll(); renderCurrentView(); toast('รับงานแล้ว');
+  }));
+  $('#team-admin-panel').classList.toggle('hidden', !isAdmin());
   if(isAdmin()){
     $('#team-admin-tasks').innerHTML = S.workTasks.map(w=> workRowHtml(w, true)).join('') || '<div class="empty">ยังไม่มีงาน</div>';
-    wireWorkRows('#team-admin-tasks', true);
+    wireWorkRows('#team-admin-tasks');
   }
 }
 
-/* ---------------- KPI ---------------- */
+/* ---------------- KPI / monthly summary ---------------- */
 $('#kpi-prev').addEventListener('click', ()=>{ S.kpiMonth.setMonth(S.kpiMonth.getMonth()-1); renderKPI(); });
 $('#kpi-next').addEventListener('click', ()=>{ S.kpiMonth.setMonth(S.kpiMonth.getMonth()+1); renderKPI(); });
+$('#kpi-status').addEventListener('change', e=>{ S.kpiStatus=e.target.value; renderKPI(); });
+$('#kpi-tag').addEventListener('change', e=>{ S.kpiTag=e.target.value; renderKPI(); });
 
 function renderKPI(){
   const y=S.kpiMonth.getFullYear(), m=S.kpiMonth.getMonth();
   $('#kpi-label').textContent = `${MONTH_NAMES[m]} ${y+543}`;
+  const allTags = [...new Set(S.clipTypes.flatMap(t=>t.tags||[]))].sort();
+  const statusSel = $('#kpi-status');
+  statusSel.innerHTML = '<option value="">ทุกสถานะ</option>' + S.settings.statuses.map(s=>`<option value="${esc(s.n)}" ${S.kpiStatus===s.n?'selected':''}>${esc(s.n)}</option>`).join('');
+  $('#kpi-tag').innerHTML = '<option value="">ทุกหมวดหมู่</option>' + allTags.map(t=>`<option value="${esc(t)}" ${S.kpiTag===t?'selected':''}>${esc(t)}</option>`).join('');
+
   const from = new Date(y,m,1), to = new Date(y,m+1,0);
-  const occs = occurrencesInRange(from,to).filter(o=>o.override);
-  const totalViews = occs.reduce((s,o)=> s + (o.override.views||0), 0);
-  const scored = occs.filter(o=>o.override.score!=null);
-  const avgScore = scored.length ? (scored.reduce((s,o)=>s+Number(o.override.score),0)/scored.length) : 0;
-  const postCount = occs.length;
+  const monthOccs = occurrencesInRange(from, to, true)
+    .filter(o=> !S.kpiTag || (o.type.tags||[]).includes(S.kpiTag));
+  const shown = monthOccs.filter(o=> !S.kpiStatus || occStatus(o)===S.kpiStatus);
+
+  const views = o => (o.override && o.override.views) || 0;
+  const scored = shown.filter(o=> o.override && o.override.score!=null);
+  const avgScore = scored.length ? scored.reduce((s,o)=>s+Number(o.override.score),0)/scored.length : 0;
+  const posted = shown.filter(o=> statusOf(occStatus(o)).d===1).length;
+  const totalViews = shown.reduce((s,o)=>s+views(o),0);
   $('#kpi-tiles').innerHTML = `
-    <div class="kpi-tile"><div class="num">${postCount}</div><div class="lbl">จำนวนคลิปที่ลง</div></div>
+    <div class="kpi-tile"><div class="num">${shown.length}</div><div class="lbl">จำนวนคลิปในเดือนนี้</div></div>
+    <div class="kpi-tile"><div class="num">${posted}</div><div class="lbl">ลงแล้ว</div></div>
     <div class="kpi-tile"><div class="num">${totalViews.toLocaleString()}</div><div class="lbl">ยอดวิวรวม</div></div>
-    <div class="kpi-tile"><div class="num">${avgScore?avgScore.toFixed(1):'-'}</div><div class="lbl">คะแนนเฉลี่ย</div></div>
-  `;
+    <div class="kpi-tile"><div class="num">${avgScore?avgScore.toFixed(1):'-'}</div><div class="lbl">คะแนนเฉลี่ย</div></div>`;
+
+  // status donut (ignores the status filter so the proportions stay visible)
+  const counts = {};
+  monthOccs.forEach(o=>{ const s=occStatus(o); counts[s]=(counts[s]||0)+1; });
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+  if(!total){
+    $('#kpi-donut').innerHTML = '<div class="empty" style="padding:8px">ไม่มีคลิปในเดือนนี้</div>';
+  } else {
+    let acc=0; const stops=[];
+    Object.entries(counts).forEach(([name,c])=>{
+      const color = statusOf(name).c;
+      const from_ = acc/total*360; acc += c; const to_ = acc/total*360;
+      stops.push(`${color} ${from_.toFixed(2)}deg ${to_.toFixed(2)}deg`);
+    });
+    $('#kpi-donut').innerHTML = `
+      <div class="donut" style="background:conic-gradient(${stops.join(',')})"></div>
+      <div class="donut-legend">${Object.entries(counts).map(([name,c])=>
+        `<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${statusOf(name).c}"></i>${esc(name)} · ${c} (${Math.round(c/total*100)}%)</span>`).join('')}</div>`;
+  }
+
+  // top 5 by views
+  const top = [...shown].filter(o=>views(o)>0).sort((a,b)=>views(b)-views(a)).slice(0,5);
+  $('#kpi-top').innerHTML = top.length ? top.map((o,i)=>`
+      <div class="row between" style="padding:6px 0;border-bottom:1px solid var(--border)">
+        <div><b>${i+1}. ${esc(o.type.name)}</b><div class="muted" style="font-size:12px">${o.date}${o.override&&o.override.score!=null?` · คะแนน ${o.override.score}`:''}</div></div>
+        <div style="font-weight:700">${views(o).toLocaleString()}</div>
+      </div>`).join('') : '<div class="empty">ยังไม่มียอดวิวในเดือนนี้</div>';
+
+  // views by clip type, colored by that type's average score
   const byType = {};
-  occs.forEach(o=>{ byType[o.type.name] = (byType[o.type.name]||0) + (o.override.views||0); });
-  renderBars('#kpi-views-by-type', byType);
+  shown.forEach(o=>{
+    const k=o.type.id; const e=byType[k] ||= {label:o.type.name, views:0, scores:[], color:o.type.color};
+    e.views += views(o);
+    if(o.override && o.override.score!=null) e.scores.push(Number(o.override.score));
+  });
+  renderBars('#kpi-views-by-type', Object.values(byType).map(e=>({
+    label:e.label, val:e.views,
+    color: e.scores.length ? scoreColor(e.scores.reduce((a,b)=>a+b,0)/e.scores.length) : e.color,
+    note: e.scores.length ? `คะแนนเฉลี่ย ${(e.scores.reduce((a,b)=>a+b,0)/e.scores.length).toFixed(1)}` : ''
+  })));
+  $('#kpi-score-scale').innerHTML = '<span>คะแนน 1</span>' + [1,2,3,4,5,6,7,8,9,10].map(k=>`<i style="background:${scoreColor(k)}" title="${k}"></i>`).join('') + '<span>10</span>';
+
+  // views by tag
   const byTag = {};
-  occs.forEach(o=>{ (o.type.tags||['ไม่มีหมวดหมู่']).forEach(tag=>{ byTag[tag]=(byTag[tag]||0)+(o.override.views||0); }); });
-  renderBars('#kpi-views-by-tag', byTag);
+  shown.forEach(o=>{ (o.type.tags||['ไม่มีหมวดหมู่']).forEach(tg=>{ byTag[tg]=(byTag[tg]||0)+views(o); }); });
+  renderBars('#kpi-views-by-tag', Object.entries(byTag).map(([label,val])=>({label, val, color:tagColor(label)})));
 }
-function renderBars(sel, obj){
-  const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
-  if(!entries.length){ $(sel).innerHTML = '<div class="empty">ไม่มีข้อมูล</div>'; return; }
-  const max = Math.max(...entries.map(e=>e[1]),1);
-  $(sel).innerHTML = entries.map(([label,val])=>`
-    <div class="bar-row"><div class="lbl">${esc(label)}</div>
-    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,val/max*100)}%"></div></div>
-    <div class="bar-val">${val.toLocaleString()}</div></div>`).join('');
+function renderBars(sel, items){
+  items = items.filter(i=>i.val>0 || items.length<=12).sort((a,b)=>b.val-a.val);
+  if(!items.length){ $(sel).innerHTML = '<div class="empty">ไม่มีข้อมูล</div>'; return; }
+  const max = Math.max(...items.map(i=>i.val),1);
+  $(sel).innerHTML = items.map(i=>`
+    <div class="bar-row"><div class="lbl" title="${esc(i.label)}">${esc(i.label)}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,i.val/max*100)}%;background:${i.color}"></div></div>
+    <div class="bar-val">${i.val.toLocaleString()}${i.note?` <span class="muted" style="font-size:10px">${esc(i.note)}</span>`:''}</div></div>`).join('');
 }
 
 /* ---------------- settings ---------------- */
@@ -954,11 +1048,11 @@ function renderSettings(){
   $('#ch-list').innerHTML = S.channels.map(c=>`
     <div class="row between" style="padding:6px 0;border-bottom:1px solid var(--border)">
       <div class="row"><span class="ct-color" style="background:${c.color}"></span>${esc(c.name)} <span class="muted">(${esc(c.short)} · ${esc(c.platform)})</span></div>
-      <div class="row"><label style="font-size:12px"><input type="checkbox" class="ch-active" data-id="${c.id}" ${c.is_active?'checked':''}> เปิดใช้</label></div>
+      <label style="font-size:12px"><input type="checkbox" class="ch-active" data-id="${c.id}" ${c.is_active?'checked':''}> เปิดใช้</label>
     </div>`).join('') || '<div class="empty">ยังไม่มีช่อง</div>';
   $all('.ch-active', $('#ch-list')).forEach(cb=> cb.addEventListener('change', async ()=>{
     const {error} = await sb.from('channels').update({is_active:cb.checked}).eq('id', cb.dataset.id);
-    if(error) return toast(error.message, true);
+    if(error){ cb.checked=!cb.checked; return toast(error.message, true); }
     channelOf(cb.dataset.id).is_active = cb.checked;
   }));
 
@@ -967,11 +1061,6 @@ function renderSettings(){
       <span class="avatar" style="background:${p.color}">${esc((p.name||'?').slice(0,1))}</span> ${esc(p.name)}
     </div>`).join('') || '<div class="empty">ยังไม่มีคน</div>';
 
-  $('#invite-list').innerHTML = S.pendingRoles.map(p=>`
-    <div class="row between" style="padding:6px 0;border-bottom:1px solid var(--border)">
-      <div>${esc(p.email)} <span class="pill" style="background:var(--accent-weak);color:var(--accent)">${p.role==='admin'?'แอดมิน':'ทีมงาน'}</span></div>
-      <button class="btn small danger" data-del="${p.email}">ลบ</button>
-    </div>`).join('') || '<div class="empty">ยังไม่มีคำเชิญ</div>';
   $('#login-accounts-list').innerHTML = S.loginAccounts.map(a=>`
     <div class="row between" style="padding:8px 0;border-bottom:1px solid var(--border)">
       <div><div style="font-weight:600">${esc(a.label)}</div><div class="muted" style="font-size:12px">${esc(a.email)}</div></div>
@@ -996,12 +1085,6 @@ function renderSettings(){
       closeModal(); toast('เปลี่ยนรหัสผ่านแล้ว');
     };
   }));
-  $all('[data-del]', $('#invite-list')).forEach(b=> b.addEventListener('click', async ()=>{
-    const {error} = await sb.from('pending_roles').delete().eq('email', b.dataset.del);
-    if(error) return toast(error.message, true);
-    S.pendingRoles = S.pendingRoles.filter(p=>p.email!==b.dataset.del);
-    renderSettings();
-  }));
 }
 
 $('#ch-add-btn').addEventListener('click', ()=>{
@@ -1023,7 +1106,7 @@ $('#ch-add-btn').addEventListener('click', ()=>{
     const payload = {id:'ch_'+Math.random().toString(36).slice(2,8), name, short:$('#f-short').value.trim()||name.slice(0,2), color:$('#f-color').value, platform:$('#f-platform').value.trim()||'อื่นๆ', is_active:true};
     const {error} = await sb.from('channels').insert(payload);
     if(error) return toast(error.message, true);
-    S.channels.push(payload); closeModal(); renderSettings(); toast('บันทึกแล้ว');
+    closeModal(); await loadAll(); renderSettings(); toast('บันทึกแล้ว');
   };
 });
 
@@ -1042,17 +1125,17 @@ $('#ppl-add-btn').addEventListener('click', ()=>{
     const payload = {id:'p_'+Math.random().toString(36).slice(2,8), name, color:$('#f-color').value};
     const {error} = await sb.from('people').insert(payload);
     if(error) return toast(error.message, true);
-    S.people.push(payload); closeModal(); renderSettings(); toast('บันทึกแล้ว');
+    closeModal(); await loadAll(); renderSettings(); toast('บันทึกแล้ว');
   };
 });
 
 $('#invite-add-btn').addEventListener('click', ()=>{
   const pplOpts = S.people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
   $('#modal').innerHTML = `
-    <div class="modal-head"><h3>เชิญผู้ใช้งาน</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-head"><h3>เพิ่มบัญชี</h3><button class="btn small" id="m-close">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>อีเมล (ใช้เป็นตัวระบุตัวตนในระบบ ไม่ต้องยืนยันผ่านอีเมล)</label><input id="f-email" type="email"></div>
-      <div class="field"><label>ชื่อที่จะโชว์ในหน้าล็อกอิน</label><input id="f-label" placeholder="เช่น ฟิว (ทีมงาน)"></div>
+      <div class="field"><label>อีเมล (ใช้เป็นชื่อสำหรับล็อกอิน)</label><input id="f-email" type="email"></div>
+      <div class="field"><label>ชื่อที่จะโชว์</label><input id="f-label" placeholder="เช่น ฟิว (ทีมงาน)"></div>
       <div class="field"><label>สิทธิ์</label><select id="f-role"><option value="team">ทีมงาน</option><option value="admin">แอดมิน</option></select></div>
       <div class="field"><label>ผูกกับคน (ไม่บังคับ)</label><select id="f-person"><option value="">- ไม่ผูก -</option>${pplOpts}</select></div>
       <div class="field"><label>รหัสผ่านของบัญชีนี้ (อย่างน้อย 4 ตัวอักษร)</label><input id="f-password" type="text" autocomplete="off"></div>
@@ -1063,14 +1146,11 @@ $('#invite-add-btn').addEventListener('click', ()=>{
   $('#m-save').onclick = async ()=>{
     const email = $('#f-email').value.trim(); if(!email) return toast('กรอกอีเมล', true);
     const label = $('#f-label').value.trim() || email;
-    const role = $('#f-role').value;
-    const personId = $('#f-person').value || null;
     const password = $('#f-password').value;
     if(password.length < 4) return toast('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร', true);
-    const {error} = await sb.rpc('admin_create_login_account', { p_email: email, p_label: label, p_role: role, p_person_id: personId, p_password: password });
+    const {error} = await sb.rpc('admin_create_login_account', { p_email: email, p_label: label, p_role: $('#f-role').value, p_person_id: $('#f-person').value||null, p_password: password });
     if(error) return toast(error.message, true);
-    S.pendingRoles = S.pendingRoles.filter(p=>p.email!==email); S.pendingRoles.push({email, role, person_id:personId});
-    closeModal(); await loadLoginDirectory(); renderSettings(); toast('เพิ่มบัญชีแล้ว');
+    closeModal(); await loadAll(); renderSettings(); toast('เพิ่มบัญชีแล้ว');
   };
 });
 
