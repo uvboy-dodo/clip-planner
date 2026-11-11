@@ -142,9 +142,10 @@ h3{font-size:15px;margin:0 0 8px}
 <div id="login-screen" class="login-wrap">
   <div class="login-card">
     <h1>แพลนลงคลิป</h1>
-    <p>เข้าสู่ระบบด้วยอีเมลที่ได้รับอนุญาต ระบบจะส่งลิงก์เข้าสู่ระบบไปให้ทางอีเมล</p>
-    <input id="login-email" type="email" placeholder="อีเมลของคุณ" autocomplete="email">
-    <button class="btn primary" id="login-btn">ส่งลิงก์เข้าสู่ระบบ</button>
+    <p>เลือกชื่อของคุณ แล้วใส่รหัสผ่านของทีม</p>
+    <select id="login-email"><option value="">— เลือกชื่อ —</option></select>
+    <input id="login-password" type="password" placeholder="รหัสผ่าน" autocomplete="current-password">
+    <button class="btn primary" id="login-btn">เข้าสู่ระบบ</button>
     <div id="login-msg" class="login-msg hidden"></div>
   </div>
 </div>
@@ -346,16 +347,29 @@ function showPending(){
   $('#app').classList.remove('ready');
 }
 
+async function loadLoginDirectory(){
+  const {data, error} = await sb.from('login_directory').select('*').order('label');
+  const sel = $('#login-email');
+  if(error || !data || !data.length){
+    sel.innerHTML = '<option value="">(ยังไม่มีรายชื่อ — ให้แอดมินเพิ่มในหน้าตั้งค่า)</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">— เลือกชื่อ —</option>' + data.map(d=>`<option value="${esc(d.email)}">${esc(d.label)}</option>`).join('');
+}
+loadLoginDirectory();
+
 $('#login-btn').addEventListener('click', async ()=>{
-  const email = $('#login-email').value.trim();
+  const email = $('#login-email').value;
+  const password = $('#login-password').value;
   const msg = $('#login-msg');
-  if(!email){ return; }
+  if(!email){ msg.classList.remove('hidden'); msg.className='login-msg err'; msg.textContent='กรุณาเลือกชื่อ'; return; }
+  if(!password){ msg.classList.remove('hidden'); msg.className='login-msg err'; msg.textContent='กรุณาใส่รหัสผ่าน'; return; }
   $('#login-btn').disabled = true;
-  const {error} = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.origin + location.pathname } });
+  const {error} = await sb.auth.signInWithPassword({ email, password });
   $('#login-btn').disabled = false;
   msg.classList.remove('hidden');
-  if(error){ msg.className='login-msg err'; msg.textContent = 'ส่งลิงก์ไม่สำเร็จ: '+error.message; }
-  else { msg.className='login-msg ok'; msg.textContent = 'ส่งลิงก์เข้าสู่ระบบไปที่อีเมลแล้ว กรุณาตรวจสอบกล่องจดหมาย'; }
+  if(error){ msg.className='login-msg err'; msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: รหัสผ่านไม่ถูกต้อง'; }
+  else { msg.classList.add('hidden'); }
 });
 $('#logout-btn').addEventListener('click', ()=>sb.auth.signOut());
 $('#pending-logout-btn').addEventListener('click', ()=>sb.auth.signOut());
@@ -924,20 +938,24 @@ $('#invite-add-btn').addEventListener('click', ()=>{
   $('#modal').innerHTML = `
     <div class="modal-head"><h3>เชิญผู้ใช้งาน</h3><button class="btn small" id="m-close">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>อีเมล</label><input id="f-email" type="email"></div>
+      <div class="field"><label>อีเมล (ใช้เป็นตัวระบุตัวตนในระบบ ไม่ต้องยืนยันผ่านอีเมล)</label><input id="f-email" type="email"></div>
+      <div class="field"><label>ชื่อที่จะโชว์ในหน้าล็อกอิน</label><input id="f-label" placeholder="เช่น ฟิว (ทีมงาน)"></div>
       <div class="field"><label>สิทธิ์</label><select id="f-role"><option value="team">ทีมงาน</option><option value="admin">แอดมิน</option></select></div>
       <div class="field"><label>ผูกกับคน (ไม่บังคับ)</label><select id="f-person"><option value="">- ไม่ผูก -</option>${pplOpts}</select></div>
+      <p class="muted" style="font-size:12px">คนนี้จะล็อกอินด้วยรหัสผ่านร่วมของทีมเดียวกับทุกคน</p>
     </div>
     <div class="modal-foot"><button class="btn" id="m-cancel">ยกเลิก</button><button class="btn primary" id="m-save">บันทึก</button></div>`;
   openModal();
   $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
   $('#m-save').onclick = async ()=>{
     const email = $('#f-email').value.trim(); if(!email) return toast('กรอกอีเมล', true);
-    const payload = {email, role:$('#f-role').value, person_id:$('#f-person').value||null};
-    const {error} = await sb.from('pending_roles').upsert(payload);
+    const label = $('#f-label').value.trim() || email;
+    const role = $('#f-role').value;
+    const personId = $('#f-person').value || null;
+    const {error} = await sb.rpc('admin_create_login_account', { p_email: email, p_label: label, p_role: role, p_person_id: personId });
     if(error) return toast(error.message, true);
-    S.pendingRoles = S.pendingRoles.filter(p=>p.email!==email); S.pendingRoles.push(payload);
-    closeModal(); renderSettings(); toast('เชิญแล้ว');
+    S.pendingRoles = S.pendingRoles.filter(p=>p.email!==email); S.pendingRoles.push({email, role, person_id:personId});
+    closeModal(); renderSettings(); toast('เพิ่มบัญชีแล้ว ใช้รหัสผ่านร่วมของทีมล็อกอินได้เลย');
   };
 });
 
