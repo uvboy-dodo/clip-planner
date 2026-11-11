@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แพลนลงคลิป</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --bg:#f7f8fa; --panel:#ffffff; --border:#e4e7ec; --text:#1b1f24; --muted:#6b7280;
+  --accent:#6d5efc; --accent-weak:#eee9ff; --danger:#dc2626; --danger-weak:#fde8e8;
+  --ok:#16a34a; --ok-weak:#e8f7ee; --warn:#f59e0b; --warn-weak:#fef3e0;
+  --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#15171c; --panel:#1d2026; --border:#2b2f38; --text:#e7e9ee; --muted:#9aa1ad;
+    --accent:#8b7bff; --accent-weak:#2a2447; --danger:#f87171; --danger-weak:#3a1f22;
+    --ok:#4ade80; --ok-weak:#163322; --warn:#fbbf24; --warn-weak:#352a12;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;font-size:14px;line-height:1.5}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+a{color:var(--accent);text-decoration:none}
+
+#app{display:none;min-height:100vh}
+#app.ready{display:flex;flex-direction:column}
+
+/* top bar */
+.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;flex-wrap:wrap}
+.brand{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
+.tab-btn{padding:7px 14px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-weight:600;white-space:nowrap}
+.tab-btn.active{background:var(--accent-weak);color:var(--accent)}
+.tab-btn:hover:not(.active){background:var(--bg)}
+.who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.role-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+.role-badge.admin{background:var(--accent-weak);color:var(--accent)}
+.role-badge.team{background:var(--ok-weak);color:var(--ok)}
+.btn{border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);padding:7px 12px;font-weight:600;font-size:13px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{opacity:.9}
+.btn.danger{color:var(--danger);border-color:var(--danger-weak)}
+.btn.small{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:default}
+
+main{flex:1;padding:18px;max-width:1280px;margin:0 auto;width:100%}
+.view{display:none}
+.view.active{display:block}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.panel-pad{padding:16px}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap{flex-wrap:wrap}
+.row.between{justify-content:space-between}
+.muted{color:var(--muted)}
+h2{font-size:18px;margin:0 0 12px}
+h3{font-size:15px;margin:0 0 8px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+/* login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:28px}
+.login-card h1{font-size:19px;margin:0 0 4px}
+.login-card p{color:var(--muted);font-size:13px;margin:0 0 18px}
+.login-card input{width:100%;margin-bottom:10px}
+.login-card .btn{width:100%}
+.login-msg{margin-top:12px;font-size:13px;padding:10px;border-radius:8px}
+.login-msg.ok{background:var(--ok-weak);color:var(--ok)}
+.login-msg.err{background:var(--danger-weak);color:var(--danger)}
+#pending-screen{text-align:center;padding:40px 20px}
+
+/* calendar */
+.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cal-head .month-label{font-weight:700;font-size:16px;min-width:140px;text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{font-size:12px;color:var(--muted);text-align:center;padding:4px 0;font-weight:600}
+.cal-day{border:1px solid var(--border);border-radius:8px;min-height:92px;padding:5px;background:var(--bg);display:flex;flex-direction:column;gap:3px}
+.cal-day.other-month{opacity:.35}
+.cal-day.today{border-color:var(--accent)}
+.cal-day-num{font-size:12px;font-weight:700;color:var(--muted)}
+.occ-chip{font-size:11px;padding:2px 5px;border-radius:5px;color:#fff;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:flex;align-items:center;gap:3px}
+.occ-chip .sk{opacity:.5;text-decoration:line-through}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#fff;flex:none}
+
+/* clip type list */
+.ct-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--bg)}
+.ct-top{display:flex;align-items:center;gap:10px}
+.ct-color{width:10px;height:10px;border-radius:50%;flex:none}
+.ct-name{font-weight:700;flex:1}
+.pill{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
+.tag-pill{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--accent-weak);color:var(--accent)}
+.ct-meta{color:var(--muted);font-size:12px;margin-top:4px}
+.ct-actions{display:flex;gap:6px}
+
+/* work tasks */
+.task-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px;background:var(--bg)}
+.task-row.done{opacity:.55}
+.avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;flex:none}
+
+/* kpi */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi-tile{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--bg)}
+.kpi-tile .num{font-size:22px;font-weight:800}
+.kpi-tile .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.bar-row .lbl{width:150px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;background:var(--accent);border-radius:5px}
+.bar-val{width:70px;flex:none;text-align:right;color:var(--muted)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--panel);border-radius:12px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.modal-head h3{margin:0}
+.modal-body{padding:16px;display:flex;flex-direction:column;gap:10px}
+.modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%}
+.check-grid{display:flex;gap:6px;flex-wrap:wrap}
+.check-pill{padding:5px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;cursor:pointer;user-select:none}
+.check-pill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hidden{display:none !important}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transform:translateY(8px);transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+.empty{color:var(--muted);text-align:center;padding:24px;font-size:13px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend .d{width:8px;height:8px;border-radius:50%;display:inline-block}
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-wrap">
+  <div class="login-card">
+    <h1>แพลนลงคลิป</h1>
+    <p>เข้าสู่ระบบด้วยอีเมลที่ได้รับอนุญาต ระบบจะส่งลิงก์เข้าสู่ระบบไปให้ทางอีเมล</p>
+    <input id="login-email" type="email" placeholder="อีเมลของคุณ" autocomplete="email">
+    <button class="btn primary" id="login-btn">ส่งลิงก์เข้าสู่ระบบ</button>
+    <div id="login-msg" class="login-msg hidden"></div>
+  </div>
+</div>
+
+<div id="pending-screen" class="login-wrap hidden">
+  <div class="login-card" id="pending-screen">
+    <h1>ยังไม่ได้รับอนุญาต</h1>
+    <p>อีเมลนี้ยังไม่ถูกเพิ่มในระบบ กรุณาติดต่อแอดมินเพื่อขอสิทธิ์เข้าใช้งาน</p>
+    <button class="btn" id="pending-logout-btn">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>แพลนลงคลิป</div>
+    <div class="tabs" id="tabs"></div>
+    <div class="who">
+      <span id="who-email"></span>
+      <span class="role-badge" id="who-role"></span>
+      <button class="btn small" id="logout-btn">ออกจากระบบ</button>
+    </div>
+  </div>
+  <main>
+    <!-- calendar -->
+    <section class="view" data-view="calendar">
+      <div class="panel panel-pad">
+        <div class="cal-head">
+          <button class="btn small" id="cal-prev">‹</button>
+          <div class="month-label" id="cal-label"></div>
+          <button class="btn small" id="cal-next">›</button>
+          <button class="btn small" id="cal-today">วันนี้</button>
+          <div style="flex:1"></div>
+          <select id="cal-colorby" class="btn small">
+            <option value="status">สีตามสถานะ</option>
+            <option value="type">สีตามประเภทคลิป</option>
+          </select>
+        </div>
+        <div class="legend" id="cal-legend"></div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </section>
+
+    <!-- clip types -->
+    <section class="view" data-view="types">
+      <div class="section-head">
+        <h2>ประเภทคลิป</h2>
+        <button class="btn primary admin-only hidden" id="ct-add-btn">+ เพิ่มประเภทคลิป</button>
+      </div>
+      <div id="ct-list"></div>
+    </section>
+
+    <!-- work plan -->
+    <section class="view" data-view="work">
+      <div class="section-head">
+        <h2>แพลนงานตัด</h2>
+        <button class="btn primary admin-only hidden" id="wt-add-btn">+ เพิ่มงาน</button>
+      </div>
+      <div id="wt-list"></div>
+    </section>
+
+    <!-- team -->
+    <section class="view" data-view="team">
+      <div class="section-head">
+        <h2>ทีมงาน</h2>
+      </div>
+      <div class="panel panel-pad" style="margin-bottom:14px">
+        <h3>งานตัดของฉัน</h3>
+        <div id="team-my-tasks"></div>
+      </div>
+      <div class="panel panel-pad admin-only hidden" id="team-admin-panel">
+        <h3>มอบหมายงานให้ทีมงาน</h3>
+        <p class="muted" style="font-size:12px">เลือกงานด้านล่าง แล้วกดเพิ่ม/นำออกผู้รับผิดชอบ</p>
+        <div id="team-admin-tasks"></div>
+      </div>
+    </section>
+
+    <!-- kpi -->
+    <section class="view" data-view="kpi">
+      <div class="section-head">
+        <h2>สรุปรายเดือน</h2>
+        <div class="row">
+          <button class="btn small" id="kpi-prev">‹</button>
+          <div id="kpi-label" style="font-weight:700;min-width:120px;text-align:center"></div>
+          <button class="btn small" id="kpi-next">›</button>
+        </div>
+      </div>
+      <div class="kpi-grid" id="kpi-tiles"></div>
+      <div class="panel panel-pad" style="margin-bottom:14px">
+        <h3>ยอดวิวตามประเภทคลิป</h3>
+        <div id="kpi-views-by-type"></div>
+      </div>
+      <div class="panel panel-pad">
+        <h3>ยอดวิวตามหมวดหมู่</h3>
+        <div id="kpi-views-by-tag"></div>
+      </div>
+    </section>
+
+    <!-- settings -->
+    <section class="view" data-view="settings">
+      <h2>ตั้งค่า</h2>
+      <div class="panel panel-pad" style="margin-bottom:14px">
+        <div class="section-head"><h3>ช่อง</h3><button class="btn small primary" id="ch-add-btn">+ เพิ่มช่อง</button></div>
+        <div id="ch-list"></div>
+      </div>
+      <div class="panel panel-pad" style="margin-bottom:14px">
+        <div class="section-head"><h3>คน</h3><button class="btn small primary" id="ppl-add-btn">+ เพิ่มคน</button></div>
+        <div id="ppl-list"></div>
+      </div>
+      <div class="panel panel-pad">
+        <div class="section-head"><h3>เชิญผู้ใช้งาน (อนุมัติล่วงหน้า)</h3><button class="btn small primary" id="invite-add-btn">+ เชิญ</button></div>
+        <p class="muted" style="font-size:12px">เพิ่มอีเมลที่อนุญาตไว้ล่วงหน้า เมื่อเขาล็อกอินครั้งแรกระบบจะให้สิทธิ์ตามที่ตั้งไว้ทันที</p>
+        <div id="invite-list"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- config ---------------- */
+const SUPABASE_URL = 'https://ucriaoofbfmnzxvsvsyf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__EOnB8E1kwuSYPbj4VWa3g_4jBBDbgI';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const WEEKDAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+/* ---------------- state ---------------- */
+const S = {
+  session:null, role:null, personId:null, email:null,
+  channels:[], clipTypes:[], overrides:[], workTasks:[], people:[], settings:{statuses:[]}, pendingRoles:[],
+  tab:'calendar',
+  calMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  kpiMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  colorBy:'status'
+};
+
+const TABS_ADMIN = [
+  ['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน'],['settings','ตั้งค่า']
+];
+const TABS_TEAM = [
+  ['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน']
+];
+
+/* ---------------- utils ---------------- */
+function $(sel,root=document){return root.querySelector(sel)}
+function $all(sel,root=document){return [...root.querySelectorAll(sel)]}
+function pad2(n){return String(n).padStart(2,'0')}
+function dstr(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
+function parseD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function toast(msg,isErr){
+  const t=$('#toast'); t.textContent=msg; t.style.background=isErr?'var(--danger)':'var(--text)';
+  t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2600);
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function statusOf(name){ return (S.settings.statuses||[]).find(s=>s.n===name) || {n:name||'ไม่ระบุ',c:'#9aa1ad'} }
+function personOf(id){ return S.people.find(p=>p.id===id) }
+function channelOf(id){ return S.channels.find(c=>c.id===id) }
+function clipTypeOf(id){ return S.clipTypes.find(c=>c.id===id) }
+function isAdmin(){ return S.role==='admin' }
+function isTeam(){ return S.role==='team' }
+
+/* ---------------- auth ---------------- */
+sb.auth.onAuthStateChange(async (event, session)=>{
+  S.session = session;
+  if(session){ await afterSignIn(); } else { showLogin(); }
+});
+
+async function afterSignIn(){
+  S.email = S.session.user.email;
+  const {data:appUser, error} = await sb.from('app_users').select('*').eq('id', S.session.user.id).maybeSingle();
+  if(error){ toast('เกิดข้อผิดพลาดในการโหลดสิทธิ์ผู้ใช้: '+error.message, true); return; }
+  if(!appUser){ showPending(); return; }
+  S.role = appUser.role; S.personId = appUser.person_id;
+  $('#login-screen').classList.add('hidden');
+  $('#pending-screen').classList.add('hidden');
+  $('#app').classList.add('ready');
+  $('#who-email').textContent = S.email;
+  $('#who-role').textContent = S.role==='admin'?'แอดมิน':'ทีมงาน';
+  $('#who-role').className = 'role-badge '+S.role;
+  $all('.admin-only').forEach(el=> el.classList.toggle('hidden', !isAdmin()));
+  buildTabs();
+  await loadAll();
+  renderCurrentView();
+}
+
+function showLogin(){
+  $('#login-screen').classList.remove('hidden');
+  $('#pending-screen').classList.add('hidden');
+  $('#app').classList.remove('ready');
+}
+function showPending(){
+  $('#login-screen').classList.add('hidden');
+  $('#pending-screen').classList.remove('hidden');
+  $('#app').classList.remove('ready');
+}
+
+$('#login-btn').addEventListener('click', async ()=>{
+  const email = $('#login-email').value.trim();
+  const msg = $('#login-msg');
+  if(!email){ return; }
+  $('#login-btn').disabled = true;
+  const {error} = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.origin + location.pathname } });
+  $('#login-btn').disabled = false;
+  msg.classList.remove('hidden');
+  if(error){ msg.className='login-msg err'; msg.textContent = 'ส่งลิงก์ไม่สำเร็จ: '+error.message; }
+  else { msg.className='login-msg ok'; msg.textContent = 'ส่งลิงก์เข้าสู่ระบบไปที่อีเมลแล้ว กรุณาตรวจสอบกล่องจดหมาย'; }
+});
+$('#logout-btn').addEventListener('click', ()=>sb.auth.signOut());
+$('#pending-logout-btn').addEventListener('click', ()=>sb.auth.signOut());
+
+/* ---------------- tabs ---------------- */
+function buildTabs(){
+  const list = isAdmin() ? TABS_ADMIN : TABS_TEAM;
+  $('#tabs').innerHTML = list.map(([k,label])=>`<button class="tab-btn" data-tab="${k}">${label}</button>`).join('');
+  $all('.tab-btn').forEach(b=> b.addEventListener('click', ()=>{ S.tab=b.dataset.tab; renderCurrentView(); }));
+}
+function renderCurrentView(){
+  $all('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===S.tab));
+  $all('.view').forEach(v=> v.classList.toggle('active', v.dataset.view===S.tab));
+  if(S.tab==='calendar') renderCalendar();
+  else if(S.tab==='types') renderClipTypes();
+  else if(S.tab==='work') renderWorkPlan();
+  else if(S.tab==='team') renderTeam();
+  else if(S.tab==='kpi') renderKPI();
+  else if(S.tab==='settings') renderSettings();
+}
+
+/* ---------------- data load ---------------- */
+async function loadAll(){
+  const [ch, ct, ov, wt, ppl, st, pend] = await Promise.all([
+    sb.from('channels').select('*').order('created_at'),
+    sb.from('clip_types').select('*').order('created_at'),
+    sb.from('daily_overrides').select('*'),
+    sb.from('work_tasks').select('*').order('created_at'),
+    sb.from('people').select('*'),
+    sb.from('app_settings').select('*'),
+    isAdmin() ? sb.from('pending_roles').select('*') : Promise.resolve({data:[]})
+  ]);
+  [ch,ct,ov,wt,ppl,st].forEach(r=>{ if(r.error) toast('โหลดข้อมูลผิดพลาด: '+r.error.message, true); });
+  S.channels = ch.data||[];
+  S.clipTypes = ct.data||[];
+  S.overrides = ov.data||[];
+  S.workTasks = wt.data||[];
+  S.people = ppl.data||[];
+  S.pendingRoles = pend.data||[];
+  const settingsRow = (st.data||[]).find(r=>r.key==='statuses');
+  S.settings.statuses = settingsRow ? settingsRow.value : [];
+}
+
+/* ---------------- occurrence engine ---------------- */
+function ruleOccursOn(type, date){
+  const ds = dstr(date);
+  if((type.specific_dates||[]).includes(ds)) return true;
+  if(type.starts_on && ds < type.starts_on) return false;
+  if(type.ends_on && ds > type.ends_on) return false;
+  if(type.freq==='w'){ return (type.weekdays||[]).includes(date.getDay()); }
+  if(type.freq==='m'){ return (type.month_days||[]).includes(date.getDate()); }
+  return false;
+}
+// returns array of {date, n, type, override} for a given range [from,to] inclusive
+function occurrencesInRange(from, to){
+  const out = [];
+  const ovByTypeDate = {};
+  S.overrides.forEach(o=>{
+    const k = o.clip_type_id+'|'+o.occurs_on;
+    (ovByTypeDate[k] = ovByTypeDate[k]||[]).push(o);
+  });
+  S.clipTypes.forEach(type=>{
+    const d = new Date(from);
+    const seenDates = new Set();
+    while(d<=to){
+      const ds = dstr(d);
+      if(ruleOccursOn(type,d)){
+        seenDates.add(ds);
+        const key = type.id+'|'+ds;
+        const rows = (ovByTypeDate[key]||[]).sort((a,b)=>a.occurrence_no-b.occurrence_no);
+        if(rows.length){
+          rows.forEach(ov=> out.push({date:ds, n:ov.occurrence_no, type, override:ov}));
+        } else {
+          out.push({date:ds, n:1, type, override:null});
+        }
+      }
+      d.setDate(d.getDate()+1);
+    }
+    // orphan overrides: rows whose date falls in range but rule didn't fire there (manual one-offs)
+    Object.keys(ovByTypeDate).forEach(key=>{
+      if(!key.startsWith(type.id+'|')) return;
+      const ds = key.split('|')[1];
+      if(seenDates.has(ds)) return;
+      const dd = parseD(ds);
+      if(dd<from || dd>to) return;
+      ovByTypeDate[key].forEach(ov=> out.push({date:ds, n:ov.occurrence_no, type, override:ov}));
+    });
+  });
+  return out.filter(o=> !(o.override && o.override.is_skipped));
+}
+
+/* ---------------- calendar ---------------- */
+$('#cal-prev').addEventListener('click', ()=>{ S.calMonth.setMonth(S.calMonth.getMonth()-1); renderCalendar(); });
+$('#cal-next').addEventListener('click', ()=>{ S.calMonth.setMonth(S.calMonth.getMonth()+1); renderCalendar(); });
+$('#cal-today').addEventListener('click', ()=>{ const n=new Date(); S.calMonth=new Date(n.getFullYear(),n.getMonth(),1); renderCalendar(); });
+$('#cal-colorby').addEventListener('change', e=>{ S.colorBy=e.target.value; renderCalendar(); });
+
+function renderCalendar(){
+  const y = S.calMonth.getFullYear(), m = S.calMonth.getMonth();
+  $('#cal-label').textContent = `${MONTH_NAMES[m]} ${y+543}`;
+  const first = new Date(y,m,1);
+  const gridStart = new Date(first); gridStart.setDate(1-first.getDay());
+  const gridEnd = new Date(gridStart); gridEnd.setDate(gridStart.getDate()+41);
+  const occs = occurrencesInRange(gridStart, gridEnd);
+  const byDate = {};
+  occs.forEach(o=> (byDate[o.date]=byDate[o.date]||[]).push(o));
+  const todayS = dstr(new Date());
+
+  let legendHtml='';
+  if(S.colorBy==='status'){
+    legendHtml = (S.settings.statuses||[]).map(s=>`<span><span class="d" style="background:${s.c}"></span>${esc(s.n)}</span>`).join('');
+  } else {
+    legendHtml = S.clipTypes.map(t=>`<span><span class="d" style="background:${t.color}"></span>${esc(t.name)}</span>`).join('');
+  }
+  $('#cal-legend').innerHTML = legendHtml;
+
+  let html = WEEKDAY_NAMES.map(w=>`<div class="cal-dow">${w}</div>`).join('');
+  const cursor = new Date(gridStart);
+  for(let i=0;i<42;i++){
+    const ds = dstr(cursor);
+    const inMonth = cursor.getMonth()===m;
+    const dayOccs = (byDate[ds]||[]);
+    const chips = dayOccs.slice(0,4).map(o=>{
+      const color = S.colorBy==='status' ? statusOf(o.override?.status || o.type.status).c : o.type.color;
+      const label = o.type.name + (o.n>1?` #${o.n}`:'');
+      return `<div class="occ-chip" style="background:${color}" data-occ='${encodeURIComponent(JSON.stringify({date:o.date,n:o.n,tid:o.type.id}))}'>${esc(label)}</div>`;
+    }).join('');
+    const more = dayOccs.length>4 ? `<div class="muted" style="font-size:10px">+${dayOccs.length-4} เพิ่มเติม</div>` : '';
+    html += `<div class="cal-day ${inMonth?'':'other-month'} ${ds===todayS?'today':''}">
+      <div class="cal-day-num">${cursor.getDate()}</div>${chips}${more}
+    </div>`;
+    cursor.setDate(cursor.getDate()+1);
+  }
+  $('#cal-grid').innerHTML = html;
+  $all('.occ-chip', $('#cal-grid')).forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const info = JSON.parse(decodeURIComponent(el.dataset.occ));
+      openOccurrenceModal(info.tid, info.date, info.n);
+    });
+  });
+}
+
+/* ---------------- clip types ---------------- */
+function renderClipTypes(){
+  if(!S.clipTypes.length){ $('#ct-list').innerHTML = '<div class="empty">ยังไม่มีประเภทคลิป</div>'; return; }
+  $('#ct-list').innerHTML = S.clipTypes.map(t=>{
+    const st = statusOf(t.status);
+    const chNames = (t.channel_ids||[]).map(id=>channelOf(id)?.short||id).join(', ');
+    const ruleTxt = t.freq==='w'
+      ? 'ทุกสัปดาห์: ' + (t.weekdays||[]).map(d=>WEEKDAY_NAMES[d]).join(',')
+      : 'ทุกเดือน วันที่ ' + (t.month_days||[]).join(',');
+    const range = (t.starts_on||t.ends_on) ? ` (${t.starts_on||'…'} ถึง ${t.ends_on||'…'})` : '';
+    const tags = (t.tags||[]).map(tg=>`<span class="tag-pill">${esc(tg)}</span>`).join(' ');
+    return `<div class="ct-card">
+      <div class="ct-top">
+        <span class="ct-color" style="background:${t.color}"></span>
+        <span class="ct-name">${esc(t.name)}</span>
+        <span class="pill" style="background:${st.c}22;color:${st.c}">${esc(st.n)}</span>
+        ${t.is_done?'<span class="pill" style="background:var(--border);color:var(--muted)">จบแคมเปญ</span>':''}
+        <div class="ct-actions admin-only ${isAdmin()?'':'hidden'}">
+          <button class="btn small" data-act="edit" data-id="${t.id}">แก้ไข</button>
+          <button class="btn small" data-act="toggledone" data-id="${t.id}">${t.is_done?'เปิดใหม่':'จบแคมเปญ'}</button>
+        </div>
+      </div>
+      <div class="ct-meta">ช่อง: ${esc(chNames||'-')} · ${esc(ruleTxt)}${esc(range)}</div>
+      ${tags?`<div style="margin-top:6px">${tags}</div>`:''}
+    </div>`;
+  }).join('');
+  $all('[data-act="edit"]',$('#ct-list')).forEach(b=> b.addEventListener('click', ()=> openClipTypeModal(clipTypeOf(b.dataset.id))));
+  $all('[data-act="toggledone"]',$('#ct-list')).forEach(b=> b.addEventListener('click', async ()=>{
+    const t = clipTypeOf(b.dataset.id);
+    const {error} = await sb.from('clip_types').update({is_done: !t.is_done}).eq('id', t.id);
+    if(error) return toast(error.message, true);
+    t.is_done = !t.is_done; renderClipTypes();
+  }));
+}
+
+$('#ct-add-btn').addEventListener('click', ()=> openClipTypeModal(null));
+
+function openClipTypeModal(t){
+  const isNew = !t;
+  t = t || {id:'', name:'', color:'#6d5efc', status:(S.settings.statuses[0]?.n||'วางแผน'), channel_ids:[], weekdays:[], specific_dates:[], note:'', starts_on:'', ends_on:'', freq:'w', month_days:[], tags:[], is_done:false};
+  const chPills = S.channels.map(c=>`<span class="check-pill ${t.channel_ids.includes(c.id)?'on':''}" data-ch="${c.id}">${esc(c.short)}</span>`).join('');
+  const wdPills = WEEKDAY_NAMES.map((w,i)=>`<span class="check-pill ${t.weekdays.includes(i)?'on':''}" data-wd="${i}">${w}</span>`).join('');
+  const statusOpts = S.settings.statuses.map(s=>`<option value="${esc(s.n)}" ${s.n===t.status?'selected':''}>${esc(s.n)}</option>`).join('');
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>${isNew?'เพิ่ม':'แก้ไข'}ประเภทคลิป</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>ชื่อประเภทคลิป</label><input id="f-name" value="${esc(t.name)}"></div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>สี</label><input id="f-color" type="color" value="${t.color}"></div>
+        <div class="field" style="flex:2"><label>สถานะ</label><select id="f-status">${statusOpts}</select></div>
+      </div>
+      <div class="field"><label>ช่อง</label><div class="check-grid" id="f-channels">${chPills}</div></div>
+      <div class="field"><label>รูปแบบรอบ</label>
+        <select id="f-freq"><option value="w" ${t.freq==='w'?'selected':''}>รายสัปดาห์</option><option value="m" ${t.freq==='m'?'selected':''}>รายเดือน</option></select>
+      </div>
+      <div class="field" id="f-weekly-wrap" style="${t.freq==='m'?'display:none':''}"><label>วันในสัปดาห์</label><div class="check-grid" id="f-weekdays">${wdPills}</div></div>
+      <div class="field" id="f-monthly-wrap" style="${t.freq==='w'?'display:none':''}"><label>วันที่ในเดือน (คั่นด้วย ,)</label><input id="f-monthdays" value="${(t.month_days||[]).join(',')}"></div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>เริ่มตั้งแต่</label><input id="f-starts" type="date" value="${t.starts_on||''}"></div>
+        <div class="field" style="flex:1"><label>ถึงวันที่</label><input id="f-ends" type="date" value="${t.ends_on||''}"></div>
+      </div>
+      <div class="field"><label>วันเฉพาะเพิ่มเติม (คั่นด้วย ,)</label><input id="f-specific" value="${(t.specific_dates||[]).join(',')}"></div>
+      <div class="field"><label>หมวดหมู่ (คั่นด้วย ,)</label><input id="f-tags" value="${(t.tags||[]).join(',')}"></div>
+      <div class="field"><label>หมายเหตุ</label><textarea id="f-note" rows="2">${esc(t.note)}</textarea></div>
+    </div>
+    <div class="modal-foot">
+      ${!isNew?'<button class="btn danger" id="m-delete">ลบ</button>':''}
+      <button class="btn" id="m-cancel">ยกเลิก</button>
+      <button class="btn primary" id="m-save">บันทึก</button>
+    </div>`;
+  openModal();
+  $all('[data-ch]').forEach(p=>p.addEventListener('click', ()=>p.classList.toggle('on')));
+  $all('[data-wd]').forEach(p=>p.addEventListener('click', ()=>p.classList.toggle('on')));
+  $('#f-freq').addEventListener('change', e=>{
+    $('#f-weekly-wrap').style.display = e.target.value==='w'?'':'none';
+    $('#f-monthly-wrap').style.display = e.target.value==='m'?'':'none';
+  });
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  if(!isNew) $('#m-delete').onclick = async ()=>{
+    if(!confirm('ลบประเภทคลิปนี้ รวมถึงข้อมูลการลงทั้งหมดของมัน?')) return;
+    const {error} = await sb.from('clip_types').delete().eq('id', t.id);
+    if(error) return toast(error.message, true);
+    S.clipTypes = S.clipTypes.filter(x=>x.id!==t.id);
+    closeModal(); renderCurrentView();
+  };
+  $('#m-save').onclick = async ()=>{
+    const payload = {
+      name: $('#f-name').value.trim(),
+      color: $('#f-color').value,
+      status: $('#f-status').value,
+      channel_ids: $all('[data-ch].on').map(p=>p.dataset.ch),
+      freq: $('#f-freq').value,
+      weekdays: $all('[data-wd].on').map(p=>Number(p.dataset.wd)),
+      month_days: $('#f-monthdays').value.split(',').map(s=>s.trim()).filter(Boolean).map(Number),
+      starts_on: $('#f-starts').value || null,
+      ends_on: $('#f-ends').value || null,
+      specific_dates: $('#f-specific').value.split(',').map(s=>s.trim()).filter(Boolean),
+      tags: $('#f-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+      note: $('#f-note').value
+    };
+    if(!payload.name) return toast('กรุณากรอกชื่อประเภทคลิป', true);
+    if(isNew){
+      payload.id = 'ct_'+Math.random().toString(36).slice(2,9);
+      const {error} = await sb.from('clip_types').insert(payload);
+      if(error) return toast(error.message, true);
+      S.clipTypes.push({...payload, is_done:false});
+    } else {
+      const {error} = await sb.from('clip_types').update(payload).eq('id', t.id);
+      if(error) return toast(error.message, true);
+      Object.assign(t, payload);
+    }
+    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+  };
+}
+
+/* ---------------- occurrence modal ---------------- */
+function openOccurrenceModal(typeId, dateStr, n){
+  const type = clipTypeOf(typeId);
+  const ov = S.overrides.find(o=>o.clip_type_id===typeId && o.occurs_on===dateStr && o.occurrence_no===n) || {
+    clip_type_id:typeId, occurs_on:dateStr, occurrence_no:n, status:'', note:'', is_skipped:false,
+    views:null, score:null, editor_ids:[], channel_ids_override:null
+  };
+  const canEdit = isAdmin();
+  const statusOpts = ['(ใช้ค่าของประเภทคลิป)',...S.settings.statuses.map(s=>s.n)]
+    .map(s=>`<option value="${s==='(ใช้ค่าของประเภทคลิป)'?'':esc(s)}" ${ov.status===s||(s==='(ใช้ค่าของประเภทคลิป)'&&!ov.status)?'selected':''}>${esc(s)}</option>`).join('');
+  const editorPills = S.people.map(p=>`<span class="check-pill ${(ov.editor_ids||[]).includes(p.id)?'on':''}" data-ed="${p.id}">${esc(p.name)}</span>`).join('');
+  const chOverridePills = S.channels.map(c=>`<span class="check-pill ${(ov.channel_ids_override||type.channel_ids||[]).includes(c.id)?'on':''}" data-cho="${c.id}">${esc(c.short)}</span>`).join('');
+  const myAssigned = S.personId && (ov.editor_ids||[]).includes(S.personId);
+
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>${esc(type.name)} · ${dateStr}${n>1?` #${n}`:''}</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>สถานะของวันนี้</label><select id="f-ostatus" ${canEdit?'':'disabled'}>${statusOpts}</select></div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>ยอดวิว</label><input id="f-views" type="number" value="${ov.views??''}" ${canEdit?'':'disabled'}></div>
+        <div class="field" style="flex:1"><label>คะแนน (1-10)</label><input id="f-score" type="number" min="1" max="10" value="${ov.score??''}" ${canEdit?'':'disabled'}></div>
+      </div>
+      <div class="field"><label>ช่องที่ลงจริง (ถ้าต่างจากค่าเริ่มต้น)</label><div class="check-grid" id="f-chover">${chOverridePills}</div></div>
+      <div class="field"><label>ผู้ตัดต่อ/ผู้รับผิดชอบ</label><div class="check-grid" id="f-editors">${editorPills}</div></div>
+      <div class="field"><label>หมายเหตุ</label><textarea id="f-onote" rows="2" ${canEdit?'':'disabled'}>${esc(ov.note)}</textarea></div>
+      <label class="row" style="font-size:13px"><input type="checkbox" id="f-skip" ${ov.is_skipped?'checked':''} ${canEdit?'':'disabled'}> ข้ามวันนี้ (ไม่แสดงในปฏิทิน)</label>
+    </div>
+    <div class="modal-foot">
+      ${(!canEdit && S.personId)?`<button class="btn" id="m-selfassign">${myAssigned?'นำชื่อฉันออก':'รับงานนี้'}</button>`:''}
+      <button class="btn" id="m-cancel">ปิด</button>
+      ${canEdit?'<button class="btn primary" id="m-save">บันทึก</button>':''}
+    </div>`;
+  openModal();
+  if(canEdit){
+    $all('[data-cho]').forEach(p=>p.addEventListener('click', ()=>p.classList.toggle('on')));
+    $all('[data-ed]').forEach(p=>p.addEventListener('click', ()=>p.classList.toggle('on')));
+  }
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  if($('#m-selfassign')) $('#m-selfassign').onclick = async ()=>{
+    const {data, error} = await sb.rpc('toggle_my_editor_assignment', {
+      p_clip_type_id: typeId, p_occurs_on: dateStr, p_occurrence_no: n, p_add: !myAssigned
+    });
+    if(error) return toast(error.message, true);
+    upsertOverrideLocal(data);
+    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+  };
+  if($('#m-save')) $('#m-save').onclick = async ()=>{
+    const payload = {
+      clip_type_id: typeId, occurs_on: dateStr, occurrence_no: n,
+      status: $('#f-ostatus').value,
+      views: $('#f-views').value===''?null:Number($('#f-views').value),
+      score: $('#f-score').value===''?null:Number($('#f-score').value),
+      views_recorded_on: $('#f-views').value!==''? dstr(new Date()) : null,
+      channel_ids_override: $all('[data-cho].on').map(p=>p.dataset.cho),
+      editor_ids: $all('[data-ed].on').map(p=>p.dataset.ed),
+      note: $('#f-onote').value,
+      is_skipped: $('#f-skip').checked
+    };
+    const {data, error} = await sb.from('daily_overrides').upsert(payload, {onConflict:'clip_type_id,occurs_on,occurrence_no'}).select().maybeSingle();
+    if(error) return toast(error.message, true);
+    upsertOverrideLocal(data);
+    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+  };
+}
+function upsertOverrideLocal(row){
+  if(!row) return;
+  const i = S.overrides.findIndex(o=>o.clip_type_id===row.clip_type_id && o.occurs_on===row.occurs_on && o.occurrence_no===row.occurrence_no);
+  if(i>=0) S.overrides[i]=row; else S.overrides.push(row);
+}
+
+/* ---------------- work plan ---------------- */
+function renderWorkPlan(){
+  if(!S.workTasks.length){ $('#wt-list').innerHTML='<div class="empty">ยังไม่มีงานตัด</div>'; return; }
+  $('#wt-list').innerHTML = S.workTasks.map(w=> workRowHtml(w, isAdmin())).join('');
+  wireWorkRows('#wt-list', isAdmin());
+}
+function workRowHtml(w, editable){
+  const avatars = (w.assignee_ids||[]).map(id=>{
+    const p = personOf(id); if(!p) return '';
+    return `<span class="avatar" style="background:${p.color}" title="${esc(p.name)}">${esc((p.name||'?').slice(0,1))}</span>`;
+  }).join('');
+  return `<div class="task-row ${w.is_done?'done':''}" data-id="${w.id}">
+    <input type="checkbox" class="wt-done" data-id="${w.id}" ${w.is_done?'checked':''} ${editable?'':'disabled'}>
+    <div style="flex:1">
+      <div style="font-weight:600">${esc(w.name)} ${w.category?`<span class="tag-pill">${esc(w.category)}</span>`:''}</div>
+      <div class="muted" style="font-size:12px">${w.starts_on||''} ${w.ends_on?'→ '+w.ends_on:''} ${w.hours?`· ${w.hours} ชม.`:''}</div>
+    </div>
+    <div class="row">${avatars}</div>
+    ${editable?`<button class="btn small" data-act="edit" data-id="${w.id}">แก้ไข</button>`:''}
+  </div>`;
+}
+function wireWorkRows(sel, editable){
+  $all('.wt-done', $(sel)).forEach(cb=> cb.addEventListener('change', async ()=>{
+    const {error} = await sb.from('work_tasks').update({is_done: cb.checked}).eq('id', cb.dataset.id);
+    if(error){ cb.checked=!cb.checked; return toast(error.message, true); }
+    const w = S.workTasks.find(x=>x.id===cb.dataset.id); w.is_done = cb.checked; renderCurrentView();
+  }));
+  $all('[data-act="edit"]', $(sel)).forEach(b=> b.addEventListener('click', ()=> openWorkTaskModal(S.workTasks.find(w=>w.id===b.dataset.id))));
+}
+$('#wt-add-btn').addEventListener('click', ()=> openWorkTaskModal(null));
+
+function openWorkTaskModal(w){
+  const isNew = !w;
+  w = w || {id:'', name:'', category:'', starts_on:'', ends_on:'', note:'', color:'#6d5efc', is_done:false, assignee_ids:[], hours:0, source:''};
+  const pplPills = S.people.map(p=>`<span class="check-pill ${(w.assignee_ids||[]).includes(p.id)?'on':''}" data-pp="${p.id}">${esc(p.name)}</span>`).join('');
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>${isNew?'เพิ่ม':'แก้ไข'}งานตัด</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>ชื่องาน</label><input id="f-name" value="${esc(w.name)}"></div>
+      <div class="field"><label>หมวดหมู่</label><input id="f-cat" value="${esc(w.category)}"></div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>เริ่ม</label><input id="f-starts" type="date" value="${w.starts_on||''}"></div>
+        <div class="field" style="flex:1"><label>ถึง</label><input id="f-ends" type="date" value="${w.ends_on||''}"></div>
+        <div class="field" style="flex:1"><label>ชั่วโมงงาน</label><input id="f-hours" type="number" value="${w.hours||0}"></div>
+      </div>
+      <div class="field"><label>ผู้รับผิดชอบ</label><div class="check-grid" id="f-assignees">${pplPills}</div></div>
+      <div class="field"><label>หมายเหตุ</label><textarea id="f-note" rows="2">${esc(w.note)}</textarea></div>
+    </div>
+    <div class="modal-foot">
+      ${!isNew?'<button class="btn danger" id="m-delete">ลบ</button>':''}
+      <button class="btn" id="m-cancel">ยกเลิก</button>
+      <button class="btn primary" id="m-save">บันทึก</button>
+    </div>`;
+  openModal();
+  $all('[data-pp]').forEach(p=>p.addEventListener('click', ()=>p.classList.toggle('on')));
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  if(!isNew) $('#m-delete').onclick = async ()=>{
+    if(!confirm('ลบงานนี้?')) return;
+    const {error} = await sb.from('work_tasks').delete().eq('id', w.id);
+    if(error) return toast(error.message, true);
+    S.workTasks = S.workTasks.filter(x=>x.id!==w.id);
+    closeModal(); renderCurrentView();
+  };
+  $('#m-save').onclick = async ()=>{
+    const payload = {
+      name: $('#f-name').value.trim(), category: $('#f-cat').value.trim(),
+      starts_on: $('#f-starts').value||null, ends_on: $('#f-ends').value||null,
+      hours: Number($('#f-hours').value||0),
+      assignee_ids: $all('[data-pp].on').map(p=>p.dataset.pp),
+      note: $('#f-note').value
+    };
+    if(!payload.name) return toast('กรุณากรอกชื่องาน', true);
+    if(isNew){
+      payload.id = 'wt_'+Math.random().toString(36).slice(2,9);
+      const {error} = await sb.from('work_tasks').insert(payload);
+      if(error) return toast(error.message, true);
+      S.workTasks.push({...payload, is_done:false});
+    } else {
+      const {error} = await sb.from('work_tasks').update(payload).eq('id', w.id);
+      if(error) return toast(error.message, true);
+      Object.assign(w, payload);
+    }
+    closeModal(); renderCurrentView(); toast('บันทึกแล้ว');
+  };
+}
+
+/* ---------------- team tab ---------------- */
+function renderTeam(){
+  const mine = S.personId ? S.workTasks.filter(w=>(w.assignee_ids||[]).includes(S.personId)) : [];
+  $('#team-my-tasks').innerHTML = mine.length ? mine.map(w=>{
+    const assigned = true;
+    return `<div class="task-row ${w.is_done?'done':''}">
+      <div style="flex:1"><div style="font-weight:600">${esc(w.name)}</div>
+      <div class="muted" style="font-size:12px">${w.starts_on||''} ${w.ends_on?'→ '+w.ends_on:''}</div></div>
+      <button class="btn small" data-unassign="${w.id}">นำชื่อฉันออก</button>
+    </div>`;
+  }).join('') : '<div class="empty">ยังไม่มีงานที่รับผิดชอบ</div>';
+  $all('[data-unassign]', $('#team-my-tasks')).forEach(b=> b.addEventListener('click', async ()=>{
+    const {data, error} = await sb.rpc('toggle_my_task_assignment', {p_task_id:b.dataset.unassign, p_add:false});
+    if(error) return toast(error.message, true);
+    const w = S.workTasks.find(x=>x.id===data.id); if(w) w.assignee_ids = data.assignee_ids;
+    renderCurrentView(); toast('อัปเดตแล้ว');
+  }));
+
+  if(S.personId && !isAdmin()){
+    // offer self-assign on unassigned-to-me tasks too, appended below
+    const others = S.workTasks.filter(w=>!(w.assignee_ids||[]).includes(S.personId) && !w.is_done);
+    if(others.length){
+      $('#team-my-tasks').innerHTML += `<h3 style="margin-top:14px">งานที่เปิดให้รับเพิ่ม</h3>` + others.map(w=>`
+        <div class="task-row">
+          <div style="flex:1"><div style="font-weight:600">${esc(w.name)}</div></div>
+          <button class="btn small primary" data-assign="${w.id}">รับงานนี้</button>
+        </div>`).join('');
+      $all('[data-assign]', $('#team-my-tasks')).forEach(b=> b.addEventListener('click', async ()=>{
+        const {data, error} = await sb.rpc('toggle_my_task_assignment', {p_task_id:b.dataset.assign, p_add:true});
+        if(error) return toast(error.message, true);
+        const w = S.workTasks.find(x=>x.id===data.id); if(w) w.assignee_ids = data.assignee_ids;
+        renderCurrentView(); toast('รับงานแล้ว');
+      }));
+    }
+  }
+
+  if(isAdmin()){
+    $('#team-admin-tasks').innerHTML = S.workTasks.map(w=> workRowHtml(w, true)).join('') || '<div class="empty">ยังไม่มีงาน</div>';
+    wireWorkRows('#team-admin-tasks', true);
+  }
+}
+
+/* ---------------- KPI ---------------- */
+$('#kpi-prev').addEventListener('click', ()=>{ S.kpiMonth.setMonth(S.kpiMonth.getMonth()-1); renderKPI(); });
+$('#kpi-next').addEventListener('click', ()=>{ S.kpiMonth.setMonth(S.kpiMonth.getMonth()+1); renderKPI(); });
+
+function renderKPI(){
+  const y=S.kpiMonth.getFullYear(), m=S.kpiMonth.getMonth();
+  $('#kpi-label').textContent = `${MONTH_NAMES[m]} ${y+543}`;
+  const from = new Date(y,m,1), to = new Date(y,m+1,0);
+  const occs = occurrencesInRange(from,to).filter(o=>o.override);
+  const totalViews = occs.reduce((s,o)=> s + (o.override.views||0), 0);
+  const scored = occs.filter(o=>o.override.score!=null);
+  const avgScore = scored.length ? (scored.reduce((s,o)=>s+Number(o.override.score),0)/scored.length) : 0;
+  const postCount = occs.length;
+  $('#kpi-tiles').innerHTML = `
+    <div class="kpi-tile"><div class="num">${postCount}</div><div class="lbl">จำนวนคลิปที่ลง</div></div>
+    <div class="kpi-tile"><div class="num">${totalViews.toLocaleString()}</div><div class="lbl">ยอดวิวรวม</div></div>
+    <div class="kpi-tile"><div class="num">${avgScore?avgScore.toFixed(1):'-'}</div><div class="lbl">คะแนนเฉลี่ย</div></div>
+  `;
+  const byType = {};
+  occs.forEach(o=>{ byType[o.type.name] = (byType[o.type.name]||0) + (o.override.views||0); });
+  renderBars('#kpi-views-by-type', byType);
+  const byTag = {};
+  occs.forEach(o=>{ (o.type.tags||['ไม่มีหมวดหมู่']).forEach(tag=>{ byTag[tag]=(byTag[tag]||0)+(o.override.views||0); }); });
+  renderBars('#kpi-views-by-tag', byTag);
+}
+function renderBars(sel, obj){
+  const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){ $(sel).innerHTML = '<div class="empty">ไม่มีข้อมูล</div>'; return; }
+  const max = Math.max(...entries.map(e=>e[1]),1);
+  $(sel).innerHTML = entries.map(([label,val])=>`
+    <div class="bar-row"><div class="lbl">${esc(label)}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,val/max*100)}%"></div></div>
+    <div class="bar-val">${val.toLocaleString()}</div></div>`).join('');
+}
+
+/* ---------------- settings ---------------- */
+function renderSettings(){
+  $('#ch-list').innerHTML = S.channels.map(c=>`
+    <div class="row between" style="padding:6px 0;border-bottom:1px solid var(--border)">
+      <div class="row"><span class="ct-color" style="background:${c.color}"></span>${esc(c.name)} <span class="muted">(${esc(c.short)} · ${esc(c.platform)})</span></div>
+      <div class="row"><label style="font-size:12px"><input type="checkbox" class="ch-active" data-id="${c.id}" ${c.is_active?'checked':''}> เปิดใช้</label></div>
+    </div>`).join('') || '<div class="empty">ยังไม่มีช่อง</div>';
+  $all('.ch-active', $('#ch-list')).forEach(cb=> cb.addEventListener('change', async ()=>{
+    const {error} = await sb.from('channels').update({is_active:cb.checked}).eq('id', cb.dataset.id);
+    if(error) return toast(error.message, true);
+    channelOf(cb.dataset.id).is_active = cb.checked;
+  }));
+
+  $('#ppl-list').innerHTML = S.people.map(p=>`
+    <div class="row" style="padding:6px 0;border-bottom:1px solid var(--border)">
+      <span class="avatar" style="background:${p.color}">${esc((p.name||'?').slice(0,1))}</span> ${esc(p.name)}
+    </div>`).join('') || '<div class="empty">ยังไม่มีคน</div>';
+
+  $('#invite-list').innerHTML = S.pendingRoles.map(p=>`
+    <div class="row between" style="padding:6px 0;border-bottom:1px solid var(--border)">
+      <div>${esc(p.email)} <span class="pill" style="background:var(--accent-weak);color:var(--accent)">${p.role==='admin'?'แอดมิน':'ทีมงาน'}</span></div>
+      <button class="btn small danger" data-del="${p.email}">ลบ</button>
+    </div>`).join('') || '<div class="empty">ยังไม่มีคำเชิญ</div>';
+  $all('[data-del]', $('#invite-list')).forEach(b=> b.addEventListener('click', async ()=>{
+    const {error} = await sb.from('pending_roles').delete().eq('email', b.dataset.del);
+    if(error) return toast(error.message, true);
+    S.pendingRoles = S.pendingRoles.filter(p=>p.email!==b.dataset.del);
+    renderSettings();
+  }));
+}
+
+$('#ch-add-btn').addEventListener('click', ()=>{
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>เพิ่มช่อง</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>ชื่อช่อง</label><input id="f-name"></div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>ตัวย่อ</label><input id="f-short"></div>
+        <div class="field" style="flex:1"><label>สี</label><input id="f-color" type="color" value="#6d5efc"></div>
+      </div>
+      <div class="field"><label>แพลตฟอร์ม</label><input id="f-platform" placeholder="Instagram / TikTok / YouTube / Facebook ..."></div>
+    </div>
+    <div class="modal-foot"><button class="btn" id="m-cancel">ยกเลิก</button><button class="btn primary" id="m-save">บันทึก</button></div>`;
+  openModal();
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  $('#m-save').onclick = async ()=>{
+    const name=$('#f-name').value.trim(); if(!name) return toast('กรอกชื่อช่อง', true);
+    const payload = {id:'ch_'+Math.random().toString(36).slice(2,8), name, short:$('#f-short').value.trim()||name.slice(0,2), color:$('#f-color').value, platform:$('#f-platform').value.trim()||'อื่นๆ', is_active:true};
+    const {error} = await sb.from('channels').insert(payload);
+    if(error) return toast(error.message, true);
+    S.channels.push(payload); closeModal(); renderSettings(); toast('บันทึกแล้ว');
+  };
+});
+
+$('#ppl-add-btn').addEventListener('click', ()=>{
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>เพิ่มคน</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>ชื่อ</label><input id="f-name"></div>
+      <div class="field"><label>สี</label><input id="f-color" type="color" value="#6c5ce7"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" id="m-cancel">ยกเลิก</button><button class="btn primary" id="m-save">บันทึก</button></div>`;
+  openModal();
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  $('#m-save').onclick = async ()=>{
+    const name=$('#f-name').value.trim(); if(!name) return toast('กรอกชื่อ', true);
+    const payload = {id:'p_'+Math.random().toString(36).slice(2,8), name, color:$('#f-color').value};
+    const {error} = await sb.from('people').insert(payload);
+    if(error) return toast(error.message, true);
+    S.people.push(payload); closeModal(); renderSettings(); toast('บันทึกแล้ว');
+  };
+});
+
+$('#invite-add-btn').addEventListener('click', ()=>{
+  const pplOpts = S.people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>เชิญผู้ใช้งาน</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>อีเมล</label><input id="f-email" type="email"></div>
+      <div class="field"><label>สิทธิ์</label><select id="f-role"><option value="team">ทีมงาน</option><option value="admin">แอดมิน</option></select></div>
+      <div class="field"><label>ผูกกับคน (ไม่บังคับ)</label><select id="f-person"><option value="">- ไม่ผูก -</option>${pplOpts}</select></div>
+    </div>
+    <div class="modal-foot"><button class="btn" id="m-cancel">ยกเลิก</button><button class="btn primary" id="m-save">บันทึก</button></div>`;
+  openModal();
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  $('#m-save').onclick = async ()=>{
+    const email = $('#f-email').value.trim(); if(!email) return toast('กรอกอีเมล', true);
+    const payload = {email, role:$('#f-role').value, person_id:$('#f-person').value||null};
+    const {error} = await sb.from('pending_roles').upsert(payload);
+    if(error) return toast(error.message, true);
+    S.pendingRoles = S.pendingRoles.filter(p=>p.email!==email); S.pendingRoles.push(payload);
+    closeModal(); renderSettings(); toast('เชิญแล้ว');
+  };
+});
+
+/* ---------------- modal helpers ---------------- */
+function openModal(){ $('#modal-overlay').classList.add('open'); }
+function closeModal(){ $('#modal-overlay').classList.remove('open'); $('#modal').innerHTML=''; }
+$('#modal-overlay').addEventListener('click', e=>{ if(e.target.id==='modal-overlay') closeModal(); });
+</script>
+</body>
+</html>
