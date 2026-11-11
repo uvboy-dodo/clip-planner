@@ -272,8 +272,21 @@ h3{font-size:15px;margin:0 0 8px}
 /* ---------------- config ---------------- */
 const SUPABASE_URL = 'https://ucriaoofbfmnzxvsvsyf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable__EOnB8E1kwuSYPbj4VWa3g_4jBBDbgI';
+function showFatalError(msg){
+  let el = document.getElementById('fatal-error-banner');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'fatal-error-banner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:10px 16px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:40vh;overflow:auto';
+    document.body.prepend(el);
+  }
+  el.textContent += (el.textContent?'\n':'') + msg;
+}
+window.addEventListener('error', e=> showFatalError('เกิดข้อผิดพลาด: '+(e.message||e.error||e)));
+window.addEventListener('unhandledrejection', e=> showFatalError('เกิดข้อผิดพลาด: '+(e.reason && e.reason.message || e.reason)));
+
 if (typeof supabase === 'undefined') {
-  document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;text-align:center">โหลดไลบรารีไม่สำเร็จ (เช็กอินเทอร์เน็ต หรือลองรีเฟรชอีกครั้ง)</div>';
+  showFatalError('โหลดไลบรารี supabase-js ไม่สำเร็จ (เช็กอินเทอร์เน็ต หรือลองรีเฟรชอีกครั้ง)');
   throw new Error('supabase-js failed to load');
 }
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -354,7 +367,12 @@ function showPending(){
 async function loadLoginDirectory(){
   const {data, error} = await sb.from('login_directory').select('*').order('label');
   const sel = $('#login-email');
-  if(error || !data || !data.length){
+  if(error){
+    sel.innerHTML = '<option value="">(โหลดรายชื่อไม่สำเร็จ)</option>';
+    showFatalError('โหลดรายชื่อล็อกอินไม่สำเร็จ: '+error.message);
+    return;
+  }
+  if(!data || !data.length){
     sel.innerHTML = '<option value="">(ยังไม่มีรายชื่อ — ให้แอดมินเพิ่มในหน้าตั้งค่า)</option>';
     return;
   }
