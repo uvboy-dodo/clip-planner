@@ -6,6 +6,7 @@
 <title>แพลนลงคลิป</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* light theme (default) */
 :root{
   --bg:#f7f8fa; --panel:#ffffff; --border:#e4e7ec; --text:#1b1f24; --muted:#6b7280;
   --accent:#6d5efc; --accent-weak:#eee9ff; --danger:#dc2626; --danger-weak:#fde8e8;
@@ -13,13 +14,21 @@
   --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
   --radius:10px;
 }
+/* dark: follows the system unless the user picked light explicitly */
 @media (prefers-color-scheme: dark){
-  :root{
+  :root:not([data-theme="light"]){
     --bg:#15171c; --panel:#1d2026; --border:#2b2f38; --text:#e7e9ee; --muted:#9aa1ad;
     --accent:#8b7bff; --accent-weak:#2a2447; --danger:#f87171; --danger-weak:#3a1f22;
     --ok:#4ade80; --ok-weak:#163322; --warn:#fbbf24; --warn-weak:#352a12;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.4);
   }
+}
+/* dark: when the user picked dark explicitly */
+:root[data-theme="dark"]{
+  --bg:#15171c; --panel:#1d2026; --border:#2b2f38; --text:#e7e9ee; --muted:#9aa1ad;
+  --accent:#8b7bff; --accent-weak:#2a2447; --danger:#f87171; --danger-weak:#3a1f22;
+  --ok:#4ade80; --ok-weak:#163322; --warn:#fbbf24; --warn-weak:#352a12;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;font-size:14px;line-height:1.5}
@@ -38,7 +47,7 @@ a{color:var(--accent);text-decoration:none}
 .tab-btn{padding:7px 14px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-weight:600;white-space:nowrap}
 .tab-btn.active{background:var(--accent-weak);color:var(--accent)}
 .tab-btn:hover:not(.active){background:var(--bg)}
-.who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
 .role-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
 .role-badge.admin{background:var(--accent-weak);color:var(--accent)}
 .role-badge.team{background:var(--ok-weak);color:var(--ok)}
@@ -97,7 +106,7 @@ h3{font-size:15px;margin:0 0 8px}
 /* clip types */
 .ct-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--bg)}
 .ct-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ct-color{width:10px;height:10px;border-radius:50%;flex:none}
+.ct-color{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
 .ct-name{font-weight:700;flex:1}
 .pill{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
 .tag-pill{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--accent-weak);color:var(--accent)}
@@ -109,8 +118,8 @@ h3{font-size:15px;margin:0 0 8px}
 .task-row.done{opacity:.55}
 .avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;flex:none}
 
-/* kpi */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+/* monthly summary */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
 .kpi-tile{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--bg)}
 .kpi-tile .num{font-size:22px;font-weight:800}
 .kpi-tile .lbl{font-size:12px;color:var(--muted);margin-top:2px}
@@ -120,13 +129,19 @@ h3{font-size:15px;margin:0 0 8px}
 .donut::after{content:"";position:absolute;inset:32px;background:var(--panel);border-radius:50%}
 .donut-legend{font-size:13px;display:flex;flex-direction:column;gap:6px}
 .donut-legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:3px}
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
 .bar-row .lbl{width:150px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar-track{flex:1;height:12px;background:var(--border);border-radius:6px;overflow:hidden}
 .bar-fill{height:100%;border-radius:6px}
-.bar-val{width:110px;flex:none;text-align:right;color:var(--muted)}
+.bar-val{width:120px;flex:none;text-align:right;color:var(--muted)}
 .score-scale{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
 .score-scale i{display:inline-block;width:22px;height:14px;border-radius:3px}
+table.kt{width:100%;border-collapse:collapse;font-size:13px}
+table.kt th,table.kt td{padding:8px 6px;border-bottom:1px solid var(--border);text-align:left}
+table.kt th{color:var(--muted);font-weight:600;font-size:12px}
+table.kt td.num{text-align:right}
+table.kt td.score{text-align:center;font-weight:700;border-radius:6px}
 
 /* modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
@@ -174,6 +189,7 @@ h3{font-size:15px;margin:0 0 8px}
     <div class="tabs" id="tabs"></div>
     <div class="who">
       <span id="save-status" style="font-size:12px;font-weight:600"></span>
+      <button class="btn small" id="theme-btn" title="เปลี่ยนธีม">ธีม: อัตโนมัติ</button>
       <span id="who-email"></span>
       <span class="role-badge" id="who-role"></span>
       <button class="btn small" id="logout-btn">ออกจากระบบ</button>
@@ -231,7 +247,7 @@ h3{font-size:15px;margin:0 0 8px}
       </div>
     </section>
 
-    <!-- kpi -->
+    <!-- monthly summary -->
     <section class="view" data-view="kpi">
       <div class="section-head">
         <div class="row">
@@ -240,6 +256,7 @@ h3{font-size:15px;margin:0 0 8px}
           <button class="btn small" id="kpi-next">›</button>
         </div>
         <div class="row wrap">
+          <select id="kpi-type" class="btn small"></select>
           <select id="kpi-status" class="btn small"></select>
           <select id="kpi-tag" class="btn small"></select>
         </div>
@@ -256,13 +273,23 @@ h3{font-size:15px;margin:0 0 8px}
         </div>
       </div>
       <div class="panel panel-pad" style="margin-bottom:14px">
-        <h3>ยอดวิวตามประเภทคลิป</h3>
-        <div id="kpi-views-by-type"></div>
+        <h3>สรุปรายประเภทคลิป</h3>
+        <div id="kpi-by-type"></div>
         <div class="score-scale" id="kpi-score-scale"></div>
       </div>
+      <div class="kpi-two">
+        <div class="panel panel-pad">
+          <h3>ยอดวิวตามหมวดหมู่</h3>
+          <div id="kpi-views-by-tag"></div>
+        </div>
+        <div class="panel panel-pad">
+          <h3>ยอดวิวตามช่อง</h3>
+          <div id="kpi-views-by-channel"></div>
+        </div>
+      </div>
       <div class="panel panel-pad">
-        <h3>ยอดวิวตามหมวดหมู่</h3>
-        <div id="kpi-views-by-tag"></div>
+        <h3>แนวโน้มยอดวิวรวม 6 เดือนล่าสุด</h3>
+        <div id="kpi-trend"></div>
       </div>
     </section>
 
@@ -278,8 +305,8 @@ h3{font-size:15px;margin:0 0 8px}
         <div id="ppl-list"></div>
       </div>
       <div class="panel panel-pad">
-        <div class="section-head"><h3>บัญชีและรหัสผ่าน</h3><button class="btn small primary" id="invite-add-btn">+ เพิ่มบัญชี</button></div>
-        <p class="muted" style="font-size:12px">ตั้งรหัสผ่านให้แต่ละบัญชีแยกกันได้ บัญชีที่เพิ่มใหม่จะล็อกอินด้วยรหัสที่ตั้งไว้ทันที</p>
+        <div class="section-head"><h3>บัญชี รหัสผ่าน และแท็บที่มองเห็น</h3><button class="btn small primary" id="invite-add-btn">+ เพิ่มบัญชี</button></div>
+        <p class="muted" style="font-size:12px">ตั้งรหัสผ่านและเลือกแท็บที่แต่ละบัญชีจะเห็นได้แยกกัน</p>
         <div id="login-accounts-list"></div>
       </div>
     </section>
@@ -349,22 +376,42 @@ function installWriteTracking(){
 }
 installWriteTracking();
 
+/* ---------------- theme ---------------- */
+const THEME_KEY = 'clip-theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY) || 'auto'; }catch{ return 'auto'; } }
+function applyTheme(t){
+  const root = document.documentElement;
+  if(t==='light' || t==='dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+  const label = {auto:'อัตโนมัติ', light:'สว่าง', dark:'มืด'}[t] || 'อัตโนมัติ';
+  const btn = document.getElementById('theme-btn');
+  if(btn) btn.textContent = 'ธีม: ' + label;
+}
+document.getElementById('theme-btn').addEventListener('click', ()=>{
+  const order = ['auto','light','dark'];
+  const next = order[(order.indexOf(getTheme())+1) % order.length];
+  try{ localStorage.setItem(THEME_KEY, next); }catch{}
+  applyTheme(next);
+  if(S.kpiBuilt) renderKPI();
+});
+applyTheme(getTheme());
+
 /* ---------------- state ---------------- */
 const S = {
-  session:null, role:null, personId:null, email:null,
+  session:null, role:null, personId:null, email:null, visibleTabs:null,
   channels:[], clipTypes:[], overrides:[], workTasks:[], people:[],
-  settings:{statuses:[]}, loginAccounts:[],
+  settings:{statuses:[]}, loginAccounts:[], appUsers:[],
   tab:'calendar',
   calMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   kpiMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  kpiStatus:'', kpiTag:'',
+  kpiStatus:'', kpiTag:'', kpiType:'', kpiBuilt:false,
   colorBy:'status'
 };
 
 const WEEKDAY_NAMES = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 const MONTH_NAMES = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const TABS_ADMIN = [['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน'],['settings','ตั้งค่า']];
-const TABS_TEAM  = [['calendar','ปฏิทิน'],['types','ประเภทคลิป'],['work','แพลนงานตัด'],['team','ทีมงาน'],['kpi','สรุปรายเดือน']];
+const TAB_DEFS = [
+  ['calendar','ปฏิทิน'], ['types','ประเภทคลิป'], ['work','แพลนงานตัด'], ['team','ทีมงาน'], ['kpi','สรุปรายเดือน']
+];
 const TAG_PALETTE = ['#6d5efc','#e1306c','#0891b2','#16a34a','#ea580c','#db2777','#ca8a04','#0d9488','#7c3aed','#dc2626'];
 
 /* ---------------- utils ---------------- */
@@ -393,7 +440,17 @@ function scoreColor(s){
   const light = 93 - (k-1)*5.2;
   return `hsl(46 96% ${light.toFixed(1)}%)`;
 }
+function scoreTextColor(s){ return Math.round(s) >= 6 ? '#1b1f24' : '#1b1f24'; }
 function occStatus(o){ return (o.override && o.override.status) || o.type.status; }
+function roleDefaultTabs(){
+  return isAdmin() ? [...TAB_DEFS.map(t=>t[0]), 'settings'] : TAB_DEFS.map(t=>t[0]);
+}
+// tabs this account may see: role defaults, narrowed by the admin's per-account choice
+function allowedTabs(){
+  const base = roleDefaultTabs();
+  if(!S.visibleTabs) return base;
+  return base.filter(k => k==='settings' ? isAdmin() : S.visibleTabs.includes(k));
+}
 
 /* ---------------- auth ---------------- */
 sb.auth.onAuthStateChange(async (event, session)=>{
@@ -406,7 +463,7 @@ async function afterSignIn(){
   const {data:appUser, error} = await sb.from('app_users').select('*').eq('id', S.session.user.id).maybeSingle();
   if(error){ toast('เกิดข้อผิดพลาดในการโหลดสิทธิ์ผู้ใช้: '+error.message, true); return; }
   if(!appUser){ showPending(); return; }
-  S.role = appUser.role; S.personId = appUser.person_id;
+  S.role = appUser.role; S.personId = appUser.person_id; S.visibleTabs = appUser.visible_tabs || null;
   $('#login-screen').classList.add('hidden');
   $('#pending-screen').classList.add('hidden');
   $('#app').classList.add('ready');
@@ -448,11 +505,14 @@ $('#pending-logout-btn').addEventListener('click', ()=>sb.auth.signOut());
 
 /* ---------------- tabs ---------------- */
 function buildTabs(){
-  const list = isAdmin() ? TABS_ADMIN : TABS_TEAM;
-  $('#tabs').innerHTML = list.map(([k,label])=>`<button class="tab-btn" data-tab="${k}">${label}</button>`).join('');
+  const labels = Object.fromEntries([...TAB_DEFS, ['settings','ตั้งค่า']]);
+  const list = allowedTabs();
+  if(!list.includes(S.tab)) S.tab = list[0];
+  $('#tabs').innerHTML = list.map(k=>`<button class="tab-btn" data-tab="${k}">${labels[k]}</button>`).join('');
   $all('.tab-btn').forEach(b=> b.addEventListener('click', ()=>{ S.tab=b.dataset.tab; renderCurrentView(); }));
 }
 function renderCurrentView(){
+  if(!allowedTabs().includes(S.tab)){ S.tab = allowedTabs()[0]; buildTabs(); }
   $all('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===S.tab));
   $all('.view').forEach(v=> v.classList.toggle('active', v.dataset.view===S.tab));
   if(S.tab==='calendar') renderCalendar();
@@ -465,14 +525,15 @@ function renderCurrentView(){
 
 /* ---------------- data load ---------------- */
 async function loadAll(){
-  const [ch, ct, ov, wt, ppl, st, acc] = await Promise.all([
+  const [ch, ct, ov, wt, ppl, st, acc, users] = await Promise.all([
     sb.from('channels').select('*').order('created_at'),
     sb.from('clip_types').select('*').order('created_at'),
     sb.from('daily_overrides').select('*'),
     sb.from('work_tasks').select('*').order('created_at'),
     sb.from('people').select('*'),
     sb.from('app_settings').select('*'),
-    sb.from('login_directory').select('*').order('label')
+    sb.from('login_directory').select('*').order('label'),
+    isAdmin() ? sb.from('app_users').select('*') : Promise.resolve({data:[]})
   ]);
   [ch,ct,ov,wt,ppl,st].forEach(r=>{ if(r.error) toast('โหลดข้อมูลผิดพลาด: '+r.error.message, true); });
   S.channels = ch.data||[];
@@ -481,6 +542,7 @@ async function loadAll(){
   S.workTasks = wt.data||[];
   S.people = ppl.data||[];
   S.loginAccounts = acc.data||[];
+  S.appUsers = users.data||[];
   const settingsRow = (st.data||[]).find(r=>r.key==='statuses');
   S.settings.statuses = settingsRow ? settingsRow.value : [];
 }
@@ -495,7 +557,7 @@ async function refreshFromServer(){
   renderCurrentView();
 }
 function subscribeRealtime(){
-  const tables = ['clip_types','daily_overrides','work_tasks','channels','people','app_settings'];
+  const tables = ['clip_types','daily_overrides','work_tasks','channels','people','app_settings','app_users'];
   let ch = sb.channel('planner-live');
   tables.forEach(t=>{ ch = ch.on('postgres_changes', {event:'*', schema:'public', table:t}, scheduleRefresh); });
   ch.subscribe();
@@ -778,7 +840,7 @@ function openOccurrenceModal(typeId, dateStr, n){
   const type = clipTypeOf(typeId);
   const ov = S.overrides.find(o=>o.clip_type_id===typeId && o.occurs_on===dateStr && o.occurrence_no===n) || {
     clip_type_id:typeId, occurs_on:dateStr, occurrence_no:n, status:'', note:'', is_skipped:false,
-    views:null, score:null, editor_ids:[], channel_ids_override:null
+    views:null, score:null, editor_ids:[], channel_ids_override:null, views_per_channel:null
   };
   const canEdit = isAdmin();
   const statusOpts = [{n:'', label:'(ใช้ค่าของประเภทคลิป)'}, ...S.settings.statuses.map(s=>({n:s.n, label:s.n}))]
@@ -792,9 +854,10 @@ function openOccurrenceModal(typeId, dateStr, n){
     <div class="modal-body">
       <div class="field"><label>สถานะของวันนี้</label><select id="f-ostatus" ${canEdit?'':'disabled'}>${statusOpts}</select></div>
       <div class="row">
-        <div class="field" style="flex:1"><label>ยอดวิว</label><input id="f-views" type="number" value="${ov.views??''}" ${canEdit?'':'disabled'}></div>
+        <div class="field" style="flex:1"><label>ยอดวิวรวม</label><input id="f-views" type="number" value="${ov.views??''}" ${canEdit?'':'disabled'}></div>
         <div class="field" style="flex:1"><label>คะแนน (1-10)</label><input id="f-score" type="number" min="1" max="10" value="${ov.score??''}" ${canEdit?'':'disabled'}></div>
       </div>
+      <div class="field"><label>ยอดวิวแยกตามช่อง (JSON เช่น {"ig":1200,"tt":300})</label><input id="f-vpc" value="${esc(ov.views_per_channel?JSON.stringify(ov.views_per_channel):'')}" ${canEdit?'':'disabled'}></div>
       <div class="field"><label>ช่องที่ลงจริง</label><div class="check-grid">${chOverridePills}</div></div>
       <div class="field"><label>ผู้ตัดต่อ/ผู้รับผิดชอบ</label><div class="check-grid">${editorPills}</div></div>
       <div class="field"><label>หมายเหตุ</label><textarea id="f-onote" rows="2" ${canEdit?'':'disabled'}>${esc(ov.note)}</textarea></div>
@@ -820,12 +883,19 @@ function openOccurrenceModal(typeId, dateStr, n){
   };
   if($('#m-save')) $('#m-save').onclick = async ()=>{
     const hasViews = $('#f-views').value!=='';
+    let vpc = null;
+    const vpcRaw = $('#f-vpc').value.trim();
+    if(vpcRaw){
+      try{ vpc = JSON.parse(vpcRaw); if(typeof vpc!=='object' || Array.isArray(vpc)) throw new Error(); }
+      catch{ return toast('ยอดวิวแยกช่องต้องเป็น JSON เช่น {"ig":1200}', true); }
+    }
     const payload = {
       clip_type_id: typeId, occurs_on: dateStr, occurrence_no: n,
       status: $('#f-ostatus').value,
       views: hasViews ? Number($('#f-views').value) : null,
       score: $('#f-score').value==='' ? null : Number($('#f-score').value),
       views_recorded_on: hasViews ? dstr(new Date()) : null,
+      views_per_channel: vpc,
       channel_ids_override: $all('[data-cho].on').map(p=>p.dataset.cho),
       editor_ids: $all('[data-ed].on').map(p=>p.dataset.ed),
       note: $('#f-onote').value,
@@ -957,39 +1027,45 @@ function renderTeam(){
   }
 }
 
-/* ---------------- KPI / monthly summary ---------------- */
+/* ---------------- monthly summary ---------------- */
 $('#kpi-prev').addEventListener('click', ()=>{ S.kpiMonth.setMonth(S.kpiMonth.getMonth()-1); renderKPI(); });
 $('#kpi-next').addEventListener('click', ()=>{ S.kpiMonth.setMonth(S.kpiMonth.getMonth()+1); renderKPI(); });
+$('#kpi-type').addEventListener('change', e=>{ S.kpiType=e.target.value; renderKPI(); });
 $('#kpi-status').addEventListener('change', e=>{ S.kpiStatus=e.target.value; renderKPI(); });
 $('#kpi-tag').addEventListener('change', e=>{ S.kpiTag=e.target.value; renderKPI(); });
 
 function renderKPI(){
+  S.kpiBuilt = true;
   const y=S.kpiMonth.getFullYear(), m=S.kpiMonth.getMonth();
   $('#kpi-label').textContent = `${MONTH_NAMES[m]} ${y+543}`;
+
   const allTags = [...new Set(S.clipTypes.flatMap(t=>t.tags||[]))].sort();
-  const statusSel = $('#kpi-status');
-  statusSel.innerHTML = '<option value="">ทุกสถานะ</option>' + S.settings.statuses.map(s=>`<option value="${esc(s.n)}" ${S.kpiStatus===s.n?'selected':''}>${esc(s.n)}</option>`).join('');
+  $('#kpi-type').innerHTML = '<option value="">ทุกประเภทคลิป</option>' + S.clipTypes.map(t=>`<option value="${t.id}" ${S.kpiType===t.id?'selected':''}>${esc(t.name)}</option>`).join('');
+  $('#kpi-status').innerHTML = '<option value="">ทุกสถานะ</option>' + S.settings.statuses.map(s=>`<option value="${esc(s.n)}" ${S.kpiStatus===s.n?'selected':''}>${esc(s.n)}</option>`).join('');
   $('#kpi-tag').innerHTML = '<option value="">ทุกหมวดหมู่</option>' + allTags.map(t=>`<option value="${esc(t)}" ${S.kpiTag===t?'selected':''}>${esc(t)}</option>`).join('');
 
-  const from = new Date(y,m,1), to = new Date(y,m+1,0);
-  const monthOccs = occurrencesInRange(from, to, true)
+  const monthAll = occurrencesInRange(new Date(y,m,1), new Date(y,m+1,0), true);
+  const base = monthAll
+    .filter(o=> !S.kpiType || o.type.id===S.kpiType)
     .filter(o=> !S.kpiTag || (o.type.tags||[]).includes(S.kpiTag));
-  const shown = monthOccs.filter(o=> !S.kpiStatus || occStatus(o)===S.kpiStatus);
+  const shown = base.filter(o=> !S.kpiStatus || occStatus(o)===S.kpiStatus);
 
   const views = o => (o.override && o.override.views) || 0;
-  const scored = shown.filter(o=> o.override && o.override.score!=null);
-  const avgScore = scored.length ? scored.reduce((s,o)=>s+Number(o.override.score),0)/scored.length : 0;
-  const posted = shown.filter(o=> statusOf(occStatus(o)).d===1).length;
+  const scoreOf = o => (o.override && o.override.score!=null) ? Number(o.override.score) : null;
+  const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+  const scores = shown.map(scoreOf).filter(v=>v!=null);
   const totalViews = shown.reduce((s,o)=>s+views(o),0);
+  const posted = shown.filter(o=> statusOf(occStatus(o)).d===1).length;
   $('#kpi-tiles').innerHTML = `
-    <div class="kpi-tile"><div class="num">${shown.length}</div><div class="lbl">จำนวนคลิปในเดือนนี้</div></div>
+    <div class="kpi-tile"><div class="num">${shown.length}</div><div class="lbl">คลิปทั้งหมดในเดือนนี้</div></div>
     <div class="kpi-tile"><div class="num">${posted}</div><div class="lbl">ลงแล้ว</div></div>
     <div class="kpi-tile"><div class="num">${totalViews.toLocaleString()}</div><div class="lbl">ยอดวิวรวม</div></div>
-    <div class="kpi-tile"><div class="num">${avgScore?avgScore.toFixed(1):'-'}</div><div class="lbl">คะแนนเฉลี่ย</div></div>`;
+    <div class="kpi-tile"><div class="num">${shown.length?Math.round(totalViews/shown.length).toLocaleString():'-'}</div><div class="lbl">ยอดวิวเฉลี่ยต่อคลิป</div></div>
+    <div class="kpi-tile"><div class="num">${scores.length?avg(scores).toFixed(1):'-'}</div><div class="lbl">คะแนนเฉลี่ย</div></div>`;
 
-  // status donut (ignores the status filter so the proportions stay visible)
+  // status donut: proportions use the month before the status filter
   const counts = {};
-  monthOccs.forEach(o=>{ const s=occStatus(o); counts[s]=(counts[s]||0)+1; });
+  base.forEach(o=>{ const s=occStatus(o); counts[s]=(counts[s]||0)+1; });
   const total = Object.values(counts).reduce((a,b)=>a+b,0);
   if(!total){
     $('#kpi-donut').innerHTML = '<div class="empty" style="padding:8px">ไม่มีคลิปในเดือนนี้</div>';
@@ -997,50 +1073,84 @@ function renderKPI(){
     let acc=0; const stops=[];
     Object.entries(counts).forEach(([name,c])=>{
       const color = statusOf(name).c;
-      const from_ = acc/total*360; acc += c; const to_ = acc/total*360;
-      stops.push(`${color} ${from_.toFixed(2)}deg ${to_.toFixed(2)}deg`);
+      const a = acc/total*360; acc += c; const b = acc/total*360;
+      stops.push(`${color} ${a.toFixed(2)}deg ${b.toFixed(2)}deg`);
     });
     $('#kpi-donut').innerHTML = `
       <div class="donut" style="background:conic-gradient(${stops.join(',')})"></div>
       <div class="donut-legend">${Object.entries(counts).map(([name,c])=>
-        `<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${statusOf(name).c}"></i>${esc(name)} · ${c} (${Math.round(c/total*100)}%)</span>`).join('')}</div>`;
+        `<span><i class="swatch" style="background:${statusOf(name).c}"></i>${esc(name)} · ${c} (${Math.round(c/total*100)}%)</span>`).join('')}</div>`;
   }
 
   // top 5 by views
   const top = [...shown].filter(o=>views(o)>0).sort((a,b)=>views(b)-views(a)).slice(0,5);
   $('#kpi-top').innerHTML = top.length ? top.map((o,i)=>`
       <div class="row between" style="padding:6px 0;border-bottom:1px solid var(--border)">
-        <div><b>${i+1}. ${esc(o.type.name)}</b><div class="muted" style="font-size:12px">${o.date}${o.override&&o.override.score!=null?` · คะแนน ${o.override.score}`:''}</div></div>
+        <div><b>${i+1}. ${esc(o.type.name)}${o.n>1?` #${o.n}`:''}</b><div class="muted" style="font-size:12px">${o.date}${scoreOf(o)!=null?` · คะแนน ${scoreOf(o)}`:''}</div></div>
         <div style="font-weight:700">${views(o).toLocaleString()}</div>
       </div>`).join('') : '<div class="empty">ยังไม่มียอดวิวในเดือนนี้</div>';
 
-  // views by clip type, colored by that type's average score
+  // per clip type table, score cell colored on the 10-step scale
   const byType = {};
   shown.forEach(o=>{
-    const k=o.type.id; const e=byType[k] ||= {label:o.type.name, views:0, scores:[], color:o.type.color};
-    e.views += views(o);
-    if(o.override && o.override.score!=null) e.scores.push(Number(o.override.score));
+    const k=o.type.id;
+    const e = byType[k] ||= {name:o.type.name, color:o.type.color, n:0, views:0, scores:[]};
+    e.n++; e.views += views(o);
+    if(scoreOf(o)!=null) e.scores.push(scoreOf(o));
   });
-  renderBars('#kpi-views-by-type', Object.values(byType).map(e=>({
-    label:e.label, val:e.views,
-    color: e.scores.length ? scoreColor(e.scores.reduce((a,b)=>a+b,0)/e.scores.length) : e.color,
-    note: e.scores.length ? `คะแนนเฉลี่ย ${(e.scores.reduce((a,b)=>a+b,0)/e.scores.length).toFixed(1)}` : ''
-  })));
+  const rows = Object.values(byType).sort((a,b)=>b.views-a.views);
+  $('#kpi-by-type').innerHTML = rows.length ? `
+    <table class="kt">
+      <tr><th>ประเภทคลิป</th><th style="text-align:right">จำนวน</th><th style="text-align:right">ยอดวิวรวม</th><th style="text-align:right">วิวเฉลี่ย</th><th style="text-align:center">คะแนนเฉลี่ย</th></tr>
+      ${rows.map(r=>{
+        const sc = r.scores.length ? avg(r.scores) : null;
+        return `<tr>
+          <td><span class="swatch" style="background:${r.color}"></span> ${esc(r.name)}</td>
+          <td class="num">${r.n}</td>
+          <td class="num">${r.views.toLocaleString()}</td>
+          <td class="num">${r.n?Math.round(r.views/r.n).toLocaleString():'-'}</td>
+          <td class="score" style="background:${sc!=null?scoreColor(sc):'transparent'}">${sc!=null?sc.toFixed(1):'-'}</td>
+        </tr>`;
+      }).join('')}
+    </table>` : '<div class="empty">ไม่มีข้อมูล</div>';
   $('#kpi-score-scale').innerHTML = '<span>คะแนน 1</span>' + [1,2,3,4,5,6,7,8,9,10].map(k=>`<i style="background:${scoreColor(k)}" title="${k}"></i>`).join('') + '<span>10</span>';
 
   // views by tag
   const byTag = {};
   shown.forEach(o=>{ (o.type.tags||['ไม่มีหมวดหมู่']).forEach(tg=>{ byTag[tg]=(byTag[tg]||0)+views(o); }); });
   renderBars('#kpi-views-by-tag', Object.entries(byTag).map(([label,val])=>({label, val, color:tagColor(label)})));
+
+  // views by channel, from per-channel split recorded on each clip
+  const byCh = {};
+  shown.forEach(o=>{
+    const vpc = o.override && o.override.views_per_channel;
+    if(!vpc) return;
+    Object.entries(vpc).forEach(([cid,v])=>{ byCh[cid]=(byCh[cid]||0)+Number(v||0); });
+  });
+  renderBars('#kpi-views-by-channel', Object.entries(byCh).map(([cid,val])=>({
+    label: channelOf(cid)?.name || cid, val, color: channelOf(cid)?.color || '#888'
+  })));
+
+  // 6-month trend of total views (ignores filters except the type/tag filters above)
+  const trend = [];
+  for(let i=5;i>=0;i--){
+    const mm = new Date(y, m-i, 1);
+    const occ = occurrencesInRange(new Date(mm.getFullYear(), mm.getMonth(), 1), new Date(mm.getFullYear(), mm.getMonth()+1, 0), true)
+      .filter(o=> !S.kpiType || o.type.id===S.kpiType)
+      .filter(o=> !S.kpiTag || (o.type.tags||[]).includes(S.kpiTag));
+    trend.push({label:`${MONTH_NAMES[mm.getMonth()]} ${String(mm.getFullYear()+543).slice(2)}`, val: occ.reduce((s,o)=>s+views(o),0), color:'var(--accent)'});
+  }
+  renderBars('#kpi-trend', trend, false);
 }
-function renderBars(sel, items){
-  items = items.filter(i=>i.val>0 || items.length<=12).sort((a,b)=>b.val-a.val);
+function renderBars(sel, items, sort=true){
+  items = items.filter(i=>i.val>0);
+  if(sort) items.sort((a,b)=>b.val-a.val);
   if(!items.length){ $(sel).innerHTML = '<div class="empty">ไม่มีข้อมูล</div>'; return; }
   const max = Math.max(...items.map(i=>i.val),1);
   $(sel).innerHTML = items.map(i=>`
     <div class="bar-row"><div class="lbl" title="${esc(i.label)}">${esc(i.label)}</div>
     <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,i.val/max*100)}%;background:${i.color}"></div></div>
-    <div class="bar-val">${i.val.toLocaleString()}${i.note?` <span class="muted" style="font-size:10px">${esc(i.note)}</span>`:''}</div></div>`).join('');
+    <div class="bar-val">${i.val.toLocaleString()}</div></div>`).join('');
 }
 
 /* ---------------- settings ---------------- */
@@ -1061,11 +1171,20 @@ function renderSettings(){
       <span class="avatar" style="background:${p.color}">${esc((p.name||'?').slice(0,1))}</span> ${esc(p.name)}
     </div>`).join('') || '<div class="empty">ยังไม่มีคน</div>';
 
-  $('#login-accounts-list').innerHTML = S.loginAccounts.map(a=>`
+  $('#login-accounts-list').innerHTML = S.loginAccounts.map(a=>{
+    const u = S.appUsers.find(x=>x.email===a.email);
+    const tabsTxt = u ? (u.visible_tabs ? u.visible_tabs.length+' แท็บ' : 'ค่าเริ่มต้นของสิทธิ์') : 'ยังไม่เคยเข้าระบบ';
+    return `
     <div class="row between" style="padding:8px 0;border-bottom:1px solid var(--border)">
-      <div><div style="font-weight:600">${esc(a.label)}</div><div class="muted" style="font-size:12px">${esc(a.email)}</div></div>
-      <button class="btn small" data-setpw="${esc(a.email)}">ตั้งรหัสผ่านใหม่</button>
-    </div>`).join('') || '<div class="empty">ยังไม่มีบัญชี</div>';
+      <div><div style="font-weight:600">${esc(a.label)} ${u?`<span class="role-badge ${u.role}">${u.role==='admin'?'แอดมิน':'ทีมงาน'}</span>`:''}</div>
+        <div class="muted" style="font-size:12px">${esc(a.email)} · ${tabsTxt}</div></div>
+      <div class="row">
+        ${u?`<button class="btn small" data-tabs="${esc(a.email)}">แท็บที่เห็น</button>`:''}
+        <button class="btn small" data-setpw="${esc(a.email)}">ตั้งรหัสผ่านใหม่</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">ยังไม่มีบัญชี</div>';
+
   $all('[data-setpw]', $('#login-accounts-list')).forEach(b=> b.addEventListener('click', ()=>{
     const email = b.dataset.setpw;
     $('#modal').innerHTML = `
@@ -1085,6 +1204,42 @@ function renderSettings(){
       closeModal(); toast('เปลี่ยนรหัสผ่านแล้ว');
     };
   }));
+
+  $all('[data-tabs]', $('#login-accounts-list')).forEach(b=> b.addEventListener('click', ()=> openTabsModal(b.dataset.tabs)));
+}
+
+function openTabsModal(email){
+  const u = S.appUsers.find(x=>x.email===email);
+  if(!u) return toast('บัญชีนี้ยังไม่ได้เข้าระบบ จึงยังตั้งแท็บไม่ได้', true);
+  const defaults = u.role==='admin' ? TAB_DEFS.map(t=>t[0]) : TAB_DEFS.map(t=>t[0]);
+  const current = u.visible_tabs || defaults;
+  const pills = TAB_DEFS.map(([k,label])=>`<span class="check-pill ${current.includes(k)?'on':''}" data-tk="${k}">${label}</span>`).join('');
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>แท็บที่เห็น</h3><button class="btn small" id="m-close">✕</button></div>
+    <div class="modal-body">
+      <div class="muted" style="font-size:13px">${esc(email)} · ${u.role==='admin'?'แอดมิน (ตั้งค่าเห็นเสมอ)':'ทีมงาน'}</div>
+      <div class="check-grid">${pills}</div>
+      <p class="muted" style="font-size:12px">การซ่อนแท็บมีผลกับหน้าจอเท่านั้น ส่วนการแก้ไขข้อมูลยังควบคุมตามสิทธิ์ของบทบาท</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="m-reset">คืนค่าเริ่มต้น</button>
+      <button class="btn" id="m-cancel">ยกเลิก</button>
+      <button class="btn primary" id="m-save">บันทึก</button>
+    </div>`;
+  openModal();
+  $all('[data-tk]').forEach(p=>p.addEventListener('click', ()=>p.classList.toggle('on')));
+  $('#m-close').onclick = $('#m-cancel').onclick = closeModal;
+  const save = async (value)=>{
+    const {error} = await sb.from('app_users').update({visible_tabs: value}).eq('email', email);
+    if(error) return toast(error.message, true);
+    closeModal(); await loadAll(); renderSettings(); toast('บันทึกแล้ว');
+  };
+  $('#m-reset').onclick = ()=> save(null);
+  $('#m-save').onclick = ()=>{
+    const chosen = $all('[data-tk].on').map(p=>p.dataset.tk);
+    if(!chosen.length) return toast('เลือกอย่างน้อย 1 แท็บ', true);
+    save(chosen);
+  };
 }
 
 $('#ch-add-btn').addEventListener('click', ()=>{
